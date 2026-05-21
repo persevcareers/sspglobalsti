@@ -366,10 +366,10 @@ export default function SchedulesPage() {
         <>
           <div className="hidden overflow-hidden rounded-xl border border-white/[0.06] bg-card md:block">
             <div className="overflow-x-auto scrollbar-thin">
-              <table className="w-full">
+                  <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/[0.04]">
-                    {["Task ID", "Batch", "Date", "Time", "Status", "Duration", "Notes", "Updated (IST)", ""].map((h) => (
+                    {["Batch", "Schedule", "Status", "Duration", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">{h}</th>
                     ))}
                   </tr>
@@ -381,27 +381,27 @@ export default function SchedulesPage() {
                       onClick={() => handleView(schedule)} tabIndex={0} role="button" aria-label={`View schedule for ${schedule["Batch Name"]}`}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(schedule); }}
                     >
-                      <td className="px-4 py-4 font-mono text-xs text-muted-foreground">{schedule["Task ID"]}</td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04] transition-all group-hover:bg-white/[0.08]"><Calendar className="h-3.5 w-3.5 text-muted-foreground" /></div>
-                          <span className="font-medium text-foreground">{schedule["Batch Name"]}</span>
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04] transition-all group-hover:bg-white/[0.08]"><Calendar className="h-3.5 w-3.5 text-muted-foreground" /></div>
+                          <div>
+                            <p className="font-medium text-foreground">{schedule["Batch Name"]}</p>
+                            <p className="font-mono text-[10px] text-muted-foreground/40">{schedule["Task ID"]}</p>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-sm text-muted-foreground">{schedule["Schedule Date"]}</td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {schedule["Start Time"]}
-                          {schedule["End Time"] && <span className="text-muted-foreground/40">→ {schedule["End Time"]}</span>}
+                      <td className="px-4 py-4">
+                        <div className="space-y-0.5">
+                          <p className="text-sm text-foreground">{schedule["Schedule Date"]}</p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground/60">
+                            <Clock className="h-3 w-3" />
+                            {schedule["Start Time"]}
+                            {schedule["End Time"] && <span className="text-muted-foreground/40">→ {schedule["End Time"]}</span>}
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-4"><StatusBadge status={schedule.Status} /></td>
-                      <td className="hidden px-4 py-4 lg:table-cell text-sm text-muted-foreground">{schedule.Duration || "—"}</td>
-                      <td className="hidden px-4 py-4 xl:table-cell text-sm text-muted-foreground truncate max-w-[200px]" title={schedule.Notes}>{schedule.Notes || "—"}</td>
-                      <td className="hidden px-4 py-4 lg:table-cell text-xs text-muted-foreground/60" title={schedule["Last Updated Timestamp (IST)"]}>
-                        <div className="flex items-center gap-1"><History className="h-3 w-3" /><span>{schedule["Last Updated Timestamp (IST)"]}</span></div>
-                      </td>
+                      <td className="hidden px-4 py-4 sm:table-cell text-sm text-muted-foreground">{schedule.Duration || "—"}</td>
                       <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
