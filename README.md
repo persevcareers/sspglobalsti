@@ -220,3 +220,7 @@ The app is deployed on **Vercel**. To deploy your own:
 ## License
 
 Private — SSP Global
+
+---
+
+Made with ❤️ SSP Global
