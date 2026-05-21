@@ -48,8 +48,27 @@ function getNotifIcon(title: string, type: string) {
   }
 }
 
+const IST_MS = 5.5 * 60 * 60 * 1000;
+
+function toISTDate(iso: string): Date {
+  return new Date(new Date(iso).getTime() + IST_MS);
+}
+
+function getISTDateString(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function istDatePart(iso: string): string {
+  return getISTDateString(toISTDate(iso));
+}
+
 function formatTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
+  const ist = toISTDate(iso);
+  const nowIST = new Date(Date.now() + IST_MS);
+  const diff = nowIST.getTime() - ist.getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
@@ -57,20 +76,21 @@ function formatTime(iso: string): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days === 1) return "yesterday";
-  return `${days}d ago`;
+  const day = ist.getDate();
+  const dayName = ist.toLocaleDateString("en-US", { weekday: "long" });
+  const monthName = ist.toLocaleDateString("en-US", { month: "long" });
+  const year = ist.getFullYear();
+  return `${day}, ${dayName}, ${monthName} ${year}`;
 }
 
 function isToday(iso: string): boolean {
-  const d = new Date(iso);
-  const now = new Date();
-  return d.toDateString() === now.toDateString();
+  return istDatePart(iso) === getISTDateString(new Date(Date.now() + IST_MS));
 }
 
 function isYesterday(iso: string): boolean {
-  const d = new Date(iso);
-  const y = new Date();
-  y.setDate(y.getDate() - 1);
-  return d.toDateString() === y.toDateString();
+  const yesterday = new Date(Date.now() + IST_MS);
+  yesterday.setDate(yesterday.getDate() - 1);
+  return istDatePart(iso) === getISTDateString(yesterday);
 }
 
 function NotificationGroup({
