@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { callSessionAction } from "@/services/api";
 import type { AppNotification } from "@/types";
-import { NOTIFICATION_POLL_INTERVAL_MS } from "@/constants";
+import { NOTIFICATION_POLL_INTERVAL_MS, NOTIFICATION_FETCH_LIMIT } from "@/constants";
 
 export function useNotifications() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -14,22 +14,28 @@ export function useNotifications() {
   const prevUnreadIdsRef = useRef<Set<string>>(new Set());
   const initialLoadDone = useRef(false);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user?.id) return;
 
     try {
-      const result = await callSessionAction<AppNotification[]>("getNotifications", {
-        "User ID": user.id,
+      const result = await callSessionAction<{
+        notifications: AppNotification[];
+        total: number;
+        unreadCount: number;
+      }>("getNotifications", {
+        userId: user.id,
+        limit: String(NOTIFICATION_FETCH_LIMIT),
+        offset: "0",
       });
       if (result.success && result.data) {
-        setNotifications(result.data);
-        const newUnreadCount = result.data.filter((n) => n["Is Read"] !== "TRUE").length;
-        setUnreadCount(newUnreadCount);
+        const fetched = result.data.notifications || [];
+        setNotifications(fetched);
+        setUnreadCount(result.data.unreadCount);
 
         const prevIds = prevUnreadIdsRef.current;
         if (prevIds.size > 0) {
-          const newUnread = result.data.filter(
-            (n) => n["Is Read"] !== "TRUE" && !prevIds.has(n["Notification ID"])
+          const newUnread = fetched.filter(
+            (n) => n.status === "unread" && !prevIds.has(n.notificationId)
           );
           for (const notif of newUnread) {
             if (document.visibilityState !== "visible") {
@@ -38,16 +44,15 @@ export function useNotifications() {
           }
         }
         prevUnreadIdsRef.current = new Set(
-          result.data.filter((n) => n["Is Read"] !== "TRUE").map((n) => n["Notification ID"])
+          fetched.filter((n) => n.status === "unread").map((n) => n.notificationId)
         );
       }
     } catch {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !user) return;
     if (initialLoadDone.current) return;
@@ -67,38 +72,40 @@ export function useNotifications() {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [isLoaded, isSignedIn, user]);
-  /* eslint-enable react-hooks/exhaustive-deps */
+  }, [isLoaded, isSignedIn, user, fetchNotifications]);
 
-  const markAsRead = async (notificationId: string) => {
+  const markAsRead = useCallback(async (notificationId: string) => {
     setNotifications((prev) =>
       prev.map((n) =>
-        n["Notification ID"] === notificationId ? { ...n, "Is Read": "TRUE" as const } : n
+        n.notificationId === notificationId ? { ...n, status: "read" as const } : n
       )
     );
     setUnreadCount((prev) => Math.max(0, prev - 1));
-    await callSessionAction("markNotificationRead", { "Notification ID": notificationId });
-  };
+    await callSessionAction("markNotificationRead", { notificationId });
+  }, []);
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     if (!user?.id) return;
     setNotifications((prev) =>
-      prev.map((n) => ({ ...n, "Is Read": "TRUE" as const }))
+      prev.map((n) => ({ ...n, status: "read" as const }))
     );
     setUnreadCount(0);
-    await callSessionAction("markAllNotificationsRead", { "User ID": user.id });
-  };
+    await callSessionAction("markAllNotificationsRead", { userId: user.id });
+  }, [user?.id]);
 
-  const createNotification = async (data: {
-    "User ID": string;
-    Title: string;
-    Message: string;
-    Type: string;
-    Link?: string;
-  }) => {
-    await callSessionAction("createNotification", data);
+  const createNotification = useCallback(async (notif: Partial<AppNotification>) => {
+    await callSessionAction("createNotification", notif);
     fetchNotifications();
-  };
+  }, [fetchNotifications]);
+
+  const archiveOld = useCallback(async (olderThanDays = 30) => {
+    if (!user?.id) return;
+    await callSessionAction("archiveNotifications", {
+      userId: user.id,
+      olderThanDays: String(olderThanDays),
+    });
+    fetchNotifications();
+  }, [user?.id, fetchNotifications]);
 
   return {
     notifications,
@@ -107,6 +114,7 @@ export function useNotifications() {
     markAsRead,
     markAllAsRead,
     createNotification,
+    archiveOld,
     refresh: fetchNotifications,
   };
 }
@@ -114,8 +122,8 @@ export function useNotifications() {
 function showDesktopNotification(notif: AppNotification) {
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission === "granted") {
-    new Notification(notif.Title, {
-      body: notif.Message,
+    new Notification(notif.title, {
+      body: notif.message,
       icon: "/favicon.ico",
     });
   } else if (Notification.permission !== "denied") {

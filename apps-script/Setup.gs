@@ -13,7 +13,7 @@ function setupSheets() {
     "LoginLogs": ["Log ID", "User ID", "Email", "Name", "Action", "Timestamp (IST)"],
     "SessionLogs": ["Log ID", "User ID", "Email", "Login Time", "Logout Time", "Duration", "Device", "Browser", "IP"],
     "Roles": ["Role Name", "Permissions"],
-    "Notifications": ["Notification ID", "User ID", "Title", "Message", "Type", "Link", "Is Read", "Created At"]
+    "Notifications": ["notificationId", "organizationId", "branchId", "userId", "actorId", "sourceModule", "category", "priority", "title", "message", "actionUrl", "actionType", "metadata", "status", "isDeleted", "createdAt", "expiresAt", "deviceInfo", "sessionId"]
   };
 
   for (const [sheetName, headers] of Object.entries(sheetsConfig)) {

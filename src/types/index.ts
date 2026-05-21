@@ -126,12 +126,27 @@ export const ROLES_LIST: UserRole[] = [
 ];
 
 export interface AppNotification {
-  "Notification ID": string;
-  "User ID": string;
-  Title: string;
-  Message: string;
-  Type: "info" | "success" | "warning" | "error";
-  Link: string;
-  "Is Read": "TRUE" | "FALSE";
-  "Created At": string;
+  notificationId: string;
+  organizationId: string;
+  branchId: string;
+  userId: string;
+  actorId: string;
+  sourceModule: "auth" | "schedules" | "batches" | "leads" | "courses" | "students" | "trainers" | "system" | "analytics";
+  category: "security" | "attendance" | "system" | "schedule" | "batch" | "lead" | "student" | "payment" | "info";
+  priority: "critical" | "high" | "medium" | "low";
+  title: string;
+  message: string;
+  actionUrl: string;
+  actionType: "navigate" | "modal" | "none";
+  metadata: string;
+  status: "unread" | "read" | "archived" | "deleted";
+  isDeleted: "TRUE" | "FALSE";
+  createdAt: string;
+  expiresAt: string;
+  deviceInfo: string;
+  sessionId: string;
 }
+
+export type NotificationCategory = keyof typeof import("@/constants").NOTIFICATION_CATEGORIES;
+export type NotificationPriority = keyof typeof import("@/constants").NOTIFICATION_PRIORITIES;
+export type NotificationStatus = typeof import("@/constants").NOTIFICATION_STATUSES[number];

@@ -4,6 +4,11 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useUser, UserButton, Show } from "@clerk/nextjs";
+import type { AppNotification, NotificationCategory, NotificationPriority } from "@/types";
+import {
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "@/constants";
 import {
   Menu,
   Moon,
@@ -12,17 +17,17 @@ import {
   User,
   CheckCheck,
   Info,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  LogIn,
-  Handshake,
   Calendar,
   Settings,
   Shield,
   GraduationCap,
   Users,
   Inbox,
+  ClipboardCheck,
+  Layers,
+  Target,
+  CreditCard,
+  ArrowUpRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,20 +37,20 @@ interface NavbarProps {
   onMenuClick: () => void;
 }
 
-function getNotifIcon(title: string, type: string) {
-  const t = title.toLowerCase();
-  if (t.includes("welcome") || t.includes("hi")) return <Handshake className="h-4 w-4 text-violet-500" />;
-  if (t.includes("session")) return <LogIn className="h-4 w-4 text-blue-500" />;
-  if (t.includes("schedule") || t.includes("batch")) return <Calendar className="h-4 w-4 text-emerald-500" />;
-  if (t.includes("student") || t.includes("enroll")) return <Users className="h-4 w-4 text-cyan-500" />;
-  if (t.includes("security") || t.includes("password")) return <Shield className="h-4 w-4 text-rose-500" />;
-  if (t.includes("trainer") || t.includes("course")) return <GraduationCap className="h-4 w-4 text-amber-500" />;
-  switch (type) {
-    case "success": return <CheckCircle className="h-4 w-4 text-emerald-500" />;
-    case "warning": return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-    case "error": return <XCircle className="h-4 w-4 text-red-500" />;
-    default: return <Info className="h-4 w-4 text-blue-500" />;
-  }
+const categoryIconMap: Record<string, React.ReactNode> = {
+  security: <Shield className="h-4 w-4" />,
+  attendance: <ClipboardCheck className="h-4 w-4" />,
+  system: <Settings className="h-4 w-4" />,
+  schedule: <Calendar className="h-4 w-4" />,
+  batch: <Layers className="h-4 w-4" />,
+  lead: <Target className="h-4 w-4" />,
+  student: <Users className="h-4 w-4" />,
+  payment: <CreditCard className="h-4 w-4" />,
+  info: <Info className="h-4 w-4" />,
+};
+
+function getNotifCategoryIcon(category: string): React.ReactNode {
+  return categoryIconMap[category] || <Info className="h-4 w-4" />;
 }
 
 const IST_MS = 5.5 * 60 * 60 * 1000;
@@ -109,16 +114,17 @@ function NotificationGroup({
         <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">{label}</span>
       </div>
       {items.map(({ notif, index }) => {
-        const unread = notif["Is Read"] !== "TRUE";
+        const unread = notif.status === "unread";
+        const catColor = NOTIFICATION_CATEGORIES[notif.category as NotificationCategory]?.color || "text-indigo-400";
         return (
           <motion.button
-            key={notif["Notification ID"]}
+            key={notif.notificationId}
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: index * 0.03 }}
             onClick={() => {
-              if (unread) onRead(notif["Notification ID"]);
-              if (notif.Link) window.location.href = notif.Link;
+              if (unread) onRead(notif.notificationId);
+              if (notif.actionUrl) window.location.href = notif.actionUrl;
             }}
             className={`relative flex w-full items-start gap-3 px-3 py-2.5 text-left transition-all duration-200 hover:bg-white/[0.04] ${
               unread ? "bg-white/[0.03]" : ""
@@ -129,17 +135,30 @@ function NotificationGroup({
             )}
             <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
               unread ? "bg-white/[0.06]" : "bg-white/[0.03]"
-            }`}>
-              {getNotifIcon(notif.Title, notif.Type)}
+            } ${catColor}`}>
+              {getNotifCategoryIcon(notif.category)}
             </div>
             <div className="min-w-0 flex-1">
-              <p className={`text-sm leading-snug ${unread ? "font-semibold text-foreground" : "font-normal text-foreground/80"}`}>
-                {notif.Title}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className={`text-sm leading-snug ${unread ? "font-semibold text-foreground" : "font-normal text-foreground/80"}`}>
+                  {notif.title}
+                </p>
+                {notif.priority === "critical" && (
+                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.5)]" />
+                )}
+                {notif.priority === "high" && (
+                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-orange-500" />
+                )}
+              </div>
               <p className="mt-0.5 truncate text-xs leading-tight text-muted-foreground/70">
-                {notif.Message}
+                {notif.message}
               </p>
-              <p className="mt-1 text-[10px] text-muted-foreground/40">{formatTime(notif["Created At"])}</p>
+              <div className="mt-1 flex items-center gap-2">
+                <p className="text-[10px] text-muted-foreground/40">{formatTime(notif.createdAt)}</p>
+                {notif.actionUrl && (
+                  <ArrowUpRight className="h-3 w-3 text-muted-foreground/30" />
+                )}
+              </div>
             </div>
           </motion.button>
         );
@@ -158,13 +177,13 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   useEffect(() => setMounted(true), []);
 
   const { today, yesterday, earlier } = useMemo(() => {
-    const t: Array<{ notif: import("@/types").AppNotification; index: number }> = [];
-    const y: Array<{ notif: import("@/types").AppNotification; index: number }> = [];
-    const e: Array<{ notif: import("@/types").AppNotification; index: number }> = [];
+    const t: Array<{ notif: AppNotification; index: number }> = [];
+    const y: Array<{ notif: AppNotification; index: number }> = [];
+    const e: Array<{ notif: AppNotification; index: number }> = [];
     notifications.forEach((n) => {
       const item = { notif: n, index: 0 };
-      if (isToday(n["Created At"])) t.push(item);
-      else if (isYesterday(n["Created At"])) y.push(item);
+      if (isToday(n.createdAt)) t.push(item);
+      else if (isYesterday(n.createdAt)) y.push(item);
       else e.push(item);
     });
     t.forEach((item, i) => item.index = i);

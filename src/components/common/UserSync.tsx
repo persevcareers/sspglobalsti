@@ -109,10 +109,12 @@ export function UserSync() {
           console.log(`[UserSync] Registered new user: ${userEmail}`);
 
           await callSessionAction("createNotification", {
-            "User ID": currentUserId,
-            Title: "Welcome!",
-            Message: `Welcome to STI Tracksuite, ${userFullName}!`,
-            Type: "success",
+            userId: currentUserId,
+            title: "Welcome!",
+            message: `Welcome to STI Tracksuite, ${userFullName}!`,
+            category: "info",
+            priority: "medium",
+            sourceModule: "auth",
           });
         } else {
           if (existingUser["Login Time"] && existingUser["Status"] === "Online") {
@@ -161,10 +163,13 @@ export function UserSync() {
 
         if (shouldCreateSessionNotif(currentUserId)) {
           await callSessionAction("createNotification", {
-            "User ID": currentUserId,
-            Title: "Session Started",
-            Message: `You logged in from ${device} (${browser})`,
-            Type: "info",
+            userId: currentUserId,
+            title: "Session Started",
+            message: `You logged in from ${device} (${browser})`,
+            category: "info",
+            priority: "low",
+            sourceModule: "auth",
+            deviceInfo: `${device} (${browser})`,
           });
           markSessionNotifSent(currentUserId);
         }

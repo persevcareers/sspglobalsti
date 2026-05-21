@@ -182,7 +182,7 @@ export const modifySheetData = async <T>(
 };
 
 export const callSessionAction = async <T>(
-  action: "loginUser" | "logoutUser" | "updateLastActive" | "updateUserRole" | "getOnlineUsers" | "createNotification" | "getNotifications" | "markNotificationRead" | "markAllNotificationsRead",
+  action: "loginUser" | "logoutUser" | "updateLastActive" | "updateUserRole" | "getOnlineUsers" | "createNotification" | "getNotifications" | "markNotificationRead" | "markAllNotificationsRead" | "archiveNotifications" | "cleanupNotifications",
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any
 ): Promise<SessionApiResponse<T>> => {

@@ -66,6 +66,8 @@ function doPost(e) {
     if (action === "getNotifications") return handleGetNotifications(data);
     if (action === "markNotificationRead") return handleMarkNotificationRead(data);
     if (action === "markAllNotificationsRead") return handleMarkAllNotificationsRead(data);
+    if (action === "archiveNotifications") return handleArchiveNotifications(data);
+    if (action === "cleanupNotifications") return handleCleanupNotifications(data);
 
     if (!sheetName || !action || !data) {
       return response(false, "Missing required parameters");
@@ -385,17 +387,62 @@ function handleCreateNotification(data) {
 
   if (!sheet) return response(false, "Notifications sheet not found");
 
-  const now = new Date().toISOString();
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const newRow = headers.map(header => {
-    if (header === "Notification ID") return Utilities.getUuid();
-    if (header === "User ID") return data["User ID"] || "";
-    if (header === "Title") return data["Title"] || "";
-    if (header === "Message") return data["Message"] || "";
-    if (header === "Type") return data["Type"] || "info";
-    if (header === "Link") return data["Link"] || "";
-    if (header === "Is Read") return "FALSE";
-    if (header === "Created At") return now;
+  const now = new Date().toISOString();
+
+  // Dedup: skip if same userId + category + title exists within the dedup window (5 min)
+  const duplicateWindow = 5 * 60 * 1000;
+  const userId = data.userId || "";
+  const category = data.category || "info";
+  const title = data.title || "";
+  if (userId && title) {
+    const sheetData = sheet.getDataRange().getValues();
+    for (let i = 1; i < sheetData.length; i++) {
+      const row = sheetData[i];
+      const rowUserId = row[headers.indexOf("userId")] || "";
+      const rowCategory = row[headers.indexOf("category")] || "";
+      const rowTitle = row[headers.indexOf("title")] || "";
+      const rowCreatedAt = row[headers.indexOf("createdAt")] || "";
+      const rowStatus = row[headers.indexOf("status")] || "";
+      if (
+        rowUserId === userId &&
+        rowCategory === category &&
+        rowTitle === title &&
+        rowStatus === "unread" &&
+        rowCreatedAt
+      ) {
+        const rowTime = new Date(rowCreatedAt).getTime();
+        const diff = new Date(now).getTime() - rowTime;
+        if (diff >= 0 && diff < duplicateWindow) {
+          // Update the existing notification's createdAt to keep it fresh
+          const createdAtCol = headers.indexOf("createdAt") + 1;
+          sheet.getRange(i + 1, createdAtCol).setValue(now);
+          return response(true, "Notification deduplicated", null);
+        }
+      }
+    }
+  }
+
+  const newRow = headers.map(function(header) {
+    if (header === "notificationId") return Utilities.getUuid();
+    if (header === "organizationId") return data.organizationId || "ssp-global";
+    if (header === "branchId") return data.branchId || "";
+    if (header === "userId") return userId;
+    if (header === "actorId") return data.actorId || userId;
+    if (header === "sourceModule") return data.sourceModule || "system";
+    if (header === "category") return category;
+    if (header === "priority") return data.priority || "medium";
+    if (header === "title") return title;
+    if (header === "message") return data.message || "";
+    if (header === "actionUrl") return data.actionUrl || "";
+    if (header === "actionType") return data.actionType || "none";
+    if (header === "metadata") return data.metadata || "{}";
+    if (header === "status") return "unread";
+    if (header === "isDeleted") return "FALSE";
+    if (header === "createdAt") return now;
+    if (header === "expiresAt") return data.expiresAt || "";
+    if (header === "deviceInfo") return data.deviceInfo || "";
+    if (header === "sessionId") return data.sessionId || "";
     return "";
   });
 
@@ -413,27 +460,42 @@ function handleGetNotifications(data) {
   if (sheetData.length <= 1) return response(true, "Success", []);
 
   const headers = sheetData[0];
-  const userId = data["User ID"];
-  const unreadOnly = data["Unread Only"] === true;
+  const userId = data.userId || "";
+  const statusFilter = data.status || null;
+  const limit = data.limit ? parseInt(data.limit) : 50;
+  const offset = data.offset ? parseInt(data.offset) : 0;
 
   const notifications = [];
   for (let i = 1; i < sheetData.length; i++) {
     const row = sheetData[i];
-    if (userId && row[headers.indexOf("User ID")] !== userId && row[headers.indexOf("User ID")] !== "") continue;
-    if (unreadOnly && row[headers.indexOf("Is Read")] === "TRUE") continue;
+    const rowUserId = row[headers.indexOf("userId")] || "";
+    const rowIsDeleted = row[headers.indexOf("isDeleted")] || "FALSE";
+    const rowStatus = row[headers.indexOf("status")] || "unread";
 
-    let obj = {};
-    row.forEach((val, idx) => { obj[headers[idx]] = val; });
+    if (rowUserId !== userId && rowUserId !== "") continue;
+    if (rowIsDeleted === "TRUE") continue;
+    if (statusFilter && rowStatus !== statusFilter) continue;
+
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      obj[headers[j]] = row[j];
+    }
     notifications.push(obj);
   }
 
-  notifications.sort((a, b) => {
-    if (a["Created At"] < b["Created At"]) return 1;
-    if (a["Created At"] > b["Created At"]) return -1;
+  notifications.sort(function(a, b) {
+    if (a["createdAt"] < b["createdAt"]) return 1;
+    if (a["createdAt"] > b["createdAt"]) return -1;
     return 0;
   });
 
-  return response(true, "Success", notifications);
+  const paginated = notifications.slice(offset, offset + limit);
+
+  return response(true, "Success", {
+    notifications: paginated,
+    total: notifications.length,
+    unreadCount: notifications.filter(function(n) { return n["status"] === "unread"; }).length,
+  });
 }
 
 function handleMarkNotificationRead(data) {
@@ -444,13 +506,17 @@ function handleMarkNotificationRead(data) {
 
   const sheetData = sheet.getDataRange().getValues();
   const headers = sheetData[0];
-  const notifId = data["Notification ID"];
-  const notifCol = headers.indexOf("Notification ID");
-  const readCol = headers.indexOf("Is Read");
+  const notifId = data.notificationId;
+  const notifCol = headers.indexOf("notificationId");
+  const statusCol = headers.indexOf("status");
+
+  if (notifCol === -1 || statusCol === -1) {
+    return response(false, "Invalid sheet structure");
+  }
 
   for (let i = 1; i < sheetData.length; i++) {
     if (sheetData[i][notifCol] === notifId) {
-      sheet.getRange(i + 1, readCol + 1).setValue("TRUE");
+      sheet.getRange(i + 1, statusCol + 1).setValue("read");
       return response(true, "Notification marked as read");
     }
   }
@@ -466,17 +532,124 @@ function handleMarkAllNotificationsRead(data) {
 
   const sheetData = sheet.getDataRange().getValues();
   const headers = sheetData[0];
-  const userId = data["User ID"];
-  const userIdCol = headers.indexOf("User ID");
-  const readCol = headers.indexOf("Is Read");
+  const userId = data.userId || "";
+  const userIdCol = headers.indexOf("userId");
+  const statusCol = headers.indexOf("status");
 
+  if (userIdCol === -1 || statusCol === -1) {
+    return response(false, "Invalid sheet structure");
+  }
+
+  var count = 0;
   for (let i = 1; i < sheetData.length; i++) {
-    if (sheetData[i][userIdCol] === userId && sheetData[i][readCol] !== "TRUE") {
-      sheet.getRange(i + 1, readCol + 1).setValue("TRUE");
+    const rowUserId = sheetData[i][userIdCol] || "";
+    const rowStatus = sheetData[i][statusCol] || "";
+    if (rowUserId === userId && rowStatus === "unread") {
+      sheet.getRange(i + 1, statusCol + 1).setValue("read");
+      count++;
     }
   }
 
-  return response(true, "All notifications marked as read");
+  return response(true, count + " notifications marked as read");
+}
+
+function handleArchiveNotifications(data) {
+  const doc = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = doc.getSheetByName("Notifications");
+
+  if (!sheet) return response(false, "Notifications sheet not found");
+
+  const sheetData = sheet.getDataRange().getValues();
+  const headers = sheetData[0];
+  const userId = data.userId || "";
+  const userIdCol = headers.indexOf("userId");
+  const statusCol = headers.indexOf("status");
+  const createdAtCol = headers.indexOf("createdAt");
+  const olderThanDays = data.olderThanDays ? parseInt(data.olderThanDays) : 30;
+
+  if (userIdCol === -1 || statusCol === -1) {
+    return response(false, "Invalid sheet structure");
+  }
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - olderThanDays);
+  const cutoffTime = cutoff.getTime();
+
+  var count = 0;
+  for (let i = 1; i < sheetData.length; i++) {
+    const rowUserId = sheetData[i][userIdCol] || "";
+    const rowStatus = sheetData[i][statusCol] || "";
+    const rowCreatedAt = sheetData[i][createdAtCol] || "";
+
+    if (userId && rowUserId !== userId) continue;
+    if (rowStatus === "archived" || rowStatus === "deleted") continue;
+
+    if (rowCreatedAt) {
+      const createdTime = new Date(rowCreatedAt).getTime();
+      if (createdTime < cutoffTime) {
+        sheet.getRange(i + 1, statusCol + 1).setValue("archived");
+        count++;
+      }
+    }
+  }
+
+  return response(true, count + " notifications archived");
+}
+
+function handleCleanupNotifications(data) {
+  const doc = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = doc.getSheetByName("Notifications");
+
+  if (!sheet) return response(false, "Notifications sheet not found");
+
+  const sheetData = sheet.getDataRange().getValues();
+  const headers = sheetData[0];
+  const statusCol = headers.indexOf("status");
+  const isDeletedCol = headers.indexOf("isDeleted");
+  const expiresAtCol = headers.indexOf("expiresAt");
+
+  var count = 0;
+
+  // Soft-delete expired notifications
+  if (expiresAtCol !== -1) {
+    const now = new Date().toISOString();
+    for (let i = 1; i < sheetData.length; i++) {
+      const rowExpires = sheetData[i][expiresAtCol] || "";
+      const rowStatus = sheetData[i][statusCol] || "";
+      if (rowExpires && rowExpires <= now && rowStatus !== "deleted") {
+        sheet.getRange(i + 1, statusCol + 1).setValue("deleted");
+        if (isDeletedCol !== -1) {
+          sheet.getRange(i + 1, isDeletedCol + 1).setValue("TRUE");
+        }
+        count++;
+      }
+    }
+  }
+
+  // Hard-delete archived + old (>90 days) notifications
+  if (statusCol !== -1) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    var deleteRows = [];
+    for (let i = sheetData.length - 1; i >= 1; i--) {
+      const rowStatus = sheetData[i][statusCol] || "";
+      const rowCreatedAt = sheetData[i][headers.indexOf("createdAt")] || "";
+      if (rowStatus === "archived") {
+        if (rowCreatedAt) {
+          const createdTime = new Date(rowCreatedAt).getTime();
+          if (createdTime < cutoff.getTime()) {
+            deleteRows.push(i + 1);
+          }
+        }
+      }
+    }
+    for (var k = 0; k < deleteRows.length; k++) {
+      sheet.deleteRow(deleteRows[k]);
+      count++;
+    }
+  }
+
+  return response(true, count + " notifications cleaned up");
 }
 
 function response(success, message, data = null) {

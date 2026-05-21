@@ -86,3 +86,28 @@ export const ITEMS_PER_PAGE = 10;
 export const ACTIVITY_TIMEOUT_MINUTES = 15;
 export const HEARTBEAT_INTERVAL_MS = 120000;
 export const NOTIFICATION_POLL_INTERVAL_MS = 10000;
+export const NOTIFICATION_DEDUP_WINDOW_MS = 5 * 60 * 1000;
+export const NOTIFICATION_FETCH_LIMIT = 50;
+
+export const NOTIFICATION_CATEGORIES = {
+  security: { label: "Security", icon: "Shield", color: "text-rose-400" },
+  attendance: { label: "Attendance", icon: "ClipboardCheck", color: "text-amber-400" },
+  system: { label: "System", icon: "Settings", color: "text-slate-400" },
+  schedule: { label: "Schedule", icon: "Calendar", color: "text-emerald-400" },
+  batch: { label: "Batch", icon: "Layers", color: "text-blue-400" },
+  lead: { label: "Lead", icon: "Target", color: "text-purple-400" },
+  student: { label: "Student", icon: "Users", color: "text-cyan-400" },
+  payment: { label: "Payment", icon: "CreditCard", color: "text-green-400" },
+  info: { label: "Info", icon: "Info", color: "text-indigo-400" },
+} as const;
+
+export const NOTIFICATION_PRIORITIES = {
+  critical: { label: "Critical", color: "text-rose-400 bg-rose-500/10" },
+  high: { label: "High", color: "text-orange-400 bg-orange-500/10" },
+  medium: { label: "Medium", color: "text-amber-400 bg-amber-500/10" },
+  low: { label: "Low", color: "text-slate-400 bg-slate-500/10" },
+} as const;
+
+export const NOTIFICATION_STATUSES = ["unread", "read", "archived", "deleted"] as const;
+
+export const NOTIFICATION_SOURCES = ["auth", "schedules", "batches", "leads", "courses", "students", "trainers", "system", "analytics"] as const;

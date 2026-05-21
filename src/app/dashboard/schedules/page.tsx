@@ -443,7 +443,7 @@ export default function SchedulesPage() {
         } as DailySchedule);
       }
       toast.success(`Created ${batchList.length} schedules.`);
-      try { await callSessionAction("createNotification", { "User ID": "", Title: "Schedules Created", Message: `${batchList.length} schedule(s) created in bulk`, Type: "success", Link: "/dashboard/schedules" }); } catch { /* ignore */ }
+      try { await callSessionAction("createNotification", { userId: "", title: "Schedules Created", message: `${batchList.length} schedule(s) created in bulk`, category: "schedule", priority: "medium", sourceModule: "schedules", actionUrl: "/dashboard/schedules" }); } catch { /* ignore */ }
       setIsBulkDialogOpen(false); await refresh();
     } catch { toast.error("Error creating bulk schedules."); } finally { setIsBulkSubmitting(false); }
   }, [refresh]);
