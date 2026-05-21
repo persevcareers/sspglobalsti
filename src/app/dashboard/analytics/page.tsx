@@ -3,188 +3,93 @@
 import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Student, Lead, Course, Batch } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Target, GraduationCap, Percent, BookOpen } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Users, Target, Percent, GraduationCap, TrendingUp, PieChart as PieIcon } from "lucide-react";
 import { AreaChart } from "@/components/charts/area-chart";
-import { BarChart } from "@/components/charts/bar-chart";
 import { PieChart } from "@/components/charts/pie-chart";
 import { ProgressChart } from "@/components/charts/progress-chart";
 import { ChartSkeleton } from "@/components/common/loading-skeleton";
-import { fadeIn, statCardVariants } from "@/lib/animations";
+import { fadeIn, staggerContainer, statCardVariants } from "@/lib/animations";
 
 export default function AnalyticsPage() {
-  const { data: students, isLoading: studentsLoading } = useSheetsData<Student>("Students");
-  const { data: leads, isLoading: leadsLoading } = useSheetsData<Lead>("Leads");
-  const { data: courses, isLoading: coursesLoading } = useSheetsData<Course>("Courses");
-  const { data: batches, isLoading: batchesLoading } = useSheetsData<Batch>("Batches");
+  const { data: students } = useSheetsData<Student>("Students");
+  const { data: leads } = useSheetsData<Lead>("Leads");
+  const { data: batches } = useSheetsData<Batch>("Batches");
+  const isLoading = false;
 
-  const isLoading = studentsLoading || leadsLoading || coursesLoading || batchesLoading;
-
-  // Process data for charts
   const leadSourceMap: Record<string, number> = {};
-  leads.forEach((lead) => {
-    if (lead.Source) {
-      leadSourceMap[lead.Source] = (leadSourceMap[lead.Source] || 0) + 1;
-    }
-  });
-  const leadSourceData = Object.entries(leadSourceMap).map(([name, value]) => ({
-    name,
-    value,
-  }));
+  leads.forEach((l) => { if (l.Source) leadSourceMap[l.Source] = (leadSourceMap[l.Source] || 0) + 1; });
 
   const studentStatusMap: Record<string, number> = {};
-  students.forEach((student) => {
-    if (student.Status) {
-      studentStatusMap[student.Status] = (studentStatusMap[student.Status] || 0) + 1;
-    }
-  });
-  const studentStatusData = Object.entries(studentStatusMap).map(([name, value]) => ({
-    name,
-    value,
-  }));
+  students.forEach((s) => { if (s.Status) studentStatusMap[s.Status] = (studentStatusMap[s.Status] || 0) + 1; });
 
-  const conversionRate = leads.length > 0
-    ? Math.round((leads.filter((l) => l.Status === "Converted").length / leads.length) * 100)
-    : 0;
+  const conversionRate = leads.length > 0 ? Math.round((leads.filter((l) => l.Status === "Converted").length / leads.length) * 100) : 0;
 
-  // Monthly enrollment metrics (Mock aggregation based on active/inactive or start dates)
   const monthlyEnrollmentMap: Record<string, number> = {};
-  students.forEach((student) => {
-    if (student["Start Date"]) {
-      try {
-        const date = new Date(student["Start Date"]);
-        const monthName = date.toLocaleString("default", { month: "short" });
-        monthlyEnrollmentMap[monthName] = (monthlyEnrollmentMap[monthName] || 0) + 1;
-      } catch (e) {
-        // Fallback for custom formatted dates
-      }
+  students.forEach((s) => {
+    if (s["Start Date"]) {
+      try { const d = new Date(s["Start Date"]); monthlyEnrollmentMap[d.toLocaleString("default", { month: "short" })] = (monthlyEnrollmentMap[d.toLocaleString("default", { month: "short" })] || 0) + 1; } catch { /* ignore */ }
     }
   });
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const enrollmentTrendData = months
-    .map((month) => ({
-      month,
-      count: monthlyEnrollmentMap[month] || 0,
-    }))
-    .filter((d, i) => i <= new Date().getMonth() || d.count > 0);
+  const enrollmentTrendData = months.map((m) => ({ month: m, count: monthlyEnrollmentMap[m] || 0 })).filter((d, i) => i <= new Date().getMonth() || d.count > 0);
 
-  // Fallback to demo data if sheets are empty
-  const finalLeadSourceData = leadSourceData.length > 0 ? leadSourceData : [
-    { name: "Instagram", value: 35 },
-    { name: "LinkedIn", value: 25 },
-    { name: "YouTube", value: 20 },
-    { name: "Website", value: 15 },
-    { name: "Referral", value: 5 },
+  const finalLeadSourceData = Object.entries(leadSourceMap).length > 0 ? Object.entries(leadSourceMap).map(([name, value]) => ({ name, value })) : [
+    { name: "Instagram", value: 35 }, { name: "LinkedIn", value: 25 }, { name: "YouTube", value: 20 }, { name: "Website", value: 15 }, { name: "Referral", value: 5 },
   ];
 
-  const finalStudentStatusData = studentStatusData.length > 0 ? studentStatusData : [
-    { name: "Active", value: 45 },
-    { name: "Completed", value: 30 },
-    { name: "Dropped", value: 5 },
-    { name: "On Hold", value: 10 },
+  const finalStudentStatusData = Object.entries(studentStatusMap).length > 0 ? Object.entries(studentStatusMap).map(([name, value]) => ({ name, value })) : [
+    { name: "Active", value: 45 }, { name: "Completed", value: 30 }, { name: "Dropped", value: 5 }, { name: "On Hold", value: 10 },
   ];
 
   const finalEnrollmentTrendData = enrollmentTrendData.some((d) => d.count > 0) ? enrollmentTrendData : [
-    { month: "Jan", count: 12 },
-    { month: "Feb", count: 18 },
-    { month: "Mar", count: 26 },
-    { month: "Apr", count: 32 },
-    { month: "May", count: 45 },
-    { month: "Jun", count: students.length || 54 },
+    { month: "Jan", count: 12 }, { month: "Feb", count: 18 }, { month: "Mar", count: 26 }, { month: "Apr", count: 32 }, { month: "May", count: 45 }, { month: "Jun", count: students.length || 54 },
   ];
 
-  const batchProgressData = batches.map((b) => ({
-    name: b["Batch Name"] || "Unnamed Batch",
-    progress: b.Status === "Completed" ? 100 : b.Status === "Ongoing" ? 60 : 0,
-  }));
-
-  const finalBatchProgressData = batchProgressData.length > 0 ? batchProgressData : [
-    { name: "MERN Stack - B1", progress: 85 },
-    { name: "Python Core - B2", progress: 45 },
-    { name: "UI/UX Design - B3", progress: 10 },
-  ];
-
-  const statCards = [
-    { title: "Total Students", icon: Users, value: students.length, subtitle: "Active profiles on system" },
-    { title: "Total Leads", icon: Target, value: leads.length, subtitle: "Total captured opportunities" },
-    { title: "Conversion Rate", icon: Percent, value: `${conversionRate}%`, subtitle: "Leads converted to students" },
-    { title: "Running Batches", icon: GraduationCap, value: batches.filter((b) => b.Status === "Ongoing").length, subtitle: "Batches currently in progress" },
+  const batchProgressData = batches.length > 0 ? batches.map((b) => ({ name: b["Batch Name"] || "Unnamed", progress: b.Status === "Completed" ? 100 : b.Status === "Ongoing" ? 60 : 0 })) : [
+    { name: "MERN Stack - B1", progress: 85 }, { name: "Python Core - B2", progress: 45 }, { name: "UI/UX Design - B3", progress: 10 },
   ];
 
   return (
-    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Analytics & Reports</h1>
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="mx-auto max-w-[1600px] px-4 py-6 lg:px-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Analytics & Reports</h1>
+        <p className="mt-1 text-sm text-muted-foreground/70">Data-driven insights into enrollments, conversions, and performance.</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((card, i) => (
-          <motion.div
-            key={card.title}
-            custom={i}
-            variants={statCardVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                <card.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground">{card.subtitle}</p>
+      <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { icon: Users, label: "Total Students", value: students.length, desc: "Active profiles" },
+          { icon: Target, label: "Total Leads", value: leads.length, desc: "Captured opportunities" },
+          { icon: Percent, label: "Conversion Rate", value: `${conversionRate}%`, desc: "Leads → Students" },
+          { icon: GraduationCap, label: "Running Batches", value: batches.filter((b) => b.Status === "Ongoing").length, desc: "Currently in progress" },
+        ].map(({ icon: Icon, label, value, desc }, i) => (
+          <motion.div key={label} custom={i} variants={statCardVariants}>
+            <Card className="border-white/[0.06] bg-card shadow-none transition-all duration-200 hover:border-white/[0.10]">
+              <CardContent className="flex items-start gap-4 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]">
+                  <Icon className="h-4.5 w-4.5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
+                  <p className="text-xs text-muted-foreground/60">{label}</p>
+                  <p className="text-[10px] text-muted-foreground/40">{desc}</p>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
         ))}
-      </div>
-
-      {/* Advanced Charting section */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {isLoading ? (
-          <>
-            <ChartSkeleton />
-            <ChartSkeleton />
-          </>
-        ) : (
-          <>
-            <AreaChart
-              title="Student Enrollment Growth"
-              data={finalEnrollmentTrendData}
-              className="lg:col-span-4"
-            />
-            <PieChart
-              title="Lead Sources Distribution"
-              data={finalLeadSourceData}
-              className="lg:col-span-3"
-            />
-          </>
-        )}
-      </div>
+      </motion.div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {isLoading ? (
-          <>
-            <ChartSkeleton />
-            <ChartSkeleton />
-          </>
-        ) : (
-          <>
-            <PieChart
-              title="Students Status Distribution"
-              data={finalStudentStatusData}
-              className="lg:col-span-3"
-            />
-            <ProgressChart
-              title="Batch Progress Breakdown"
-              data={finalBatchProgressData}
-              className="lg:col-span-4"
-            />
-          </>
-        )}
+        <AreaChart title="Student Enrollment Growth" data={finalEnrollmentTrendData} className="rounded-xl border border-white/[0.06] bg-card lg:col-span-4" />
+        <PieChart title="Lead Sources Distribution" data={finalLeadSourceData} className="rounded-xl border border-white/[0.06] bg-card lg:col-span-3" />
+      </div>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <PieChart title="Student Status Distribution" data={finalStudentStatusData} className="rounded-xl border border-white/[0.06] bg-card lg:col-span-3" />
+        <ProgressChart title="Batch Progress Breakdown" data={batchProgressData} className="rounded-xl border border-white/[0.06] bg-card lg:col-span-4" />
       </div>
     </motion.div>
   );

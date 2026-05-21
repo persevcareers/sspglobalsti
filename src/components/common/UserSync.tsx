@@ -26,6 +26,20 @@ function getDeviceInfo() {
   return { device, browser };
 }
 
+const SESSION_COOLDOWN_MS = 15 * 60 * 1000;
+const SESSION_NOTIF_KEY = "last_session_notif_ts";
+
+function shouldCreateSessionNotif(userId: string): boolean {
+  const key = SESSION_NOTIF_KEY + userId;
+  const last = localStorage.getItem(key);
+  if (!last) return true;
+  return Date.now() - Number(last) > SESSION_COOLDOWN_MS;
+}
+
+function markSessionNotifSent(userId: string) {
+  localStorage.setItem(SESSION_NOTIF_KEY + userId, String(Date.now()));
+}
+
 function sendLogoutBeacon(userId: string, userEmail: string, userFullName: string) {
   const sessionKey = `user_logged_${userId}`;
   if (sessionStorage.getItem(sessionKey) !== "true") return;
@@ -145,12 +159,15 @@ export function UserSync() {
         sessionStorage.setItem(syncedSessionKey, "true");
         console.log(`[UserSync] Login recorded for: ${userEmail}`);
 
-        await callSessionAction("createNotification", {
-          "User ID": currentUserId,
-          Title: "Session Started",
-          Message: `You logged in from ${device} (${browser})`,
-          Type: "info",
-        });
+        if (shouldCreateSessionNotif(currentUserId)) {
+          await callSessionAction("createNotification", {
+            "User ID": currentUserId,
+            Title: "Session Started",
+            Message: `You logged in from ${device} (${browser})`,
+            Type: "info",
+          });
+          markSessionNotifSent(currentUserId);
+        }
       } catch (err) {
         console.error("[UserSync] Error syncing user session:", err);
         toast.error("Session sync failed", { description: "Some tracking features may not work correctly." });

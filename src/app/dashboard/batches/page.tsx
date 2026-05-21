@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/select";
 import { BatchForm } from "@/components/forms/BatchForm";
 import { DataTable, Column } from "@/components/tables/data-table";
-import { fadeIn, statCardVariants } from "@/lib/animations";
+import { Card, CardContent } from "@/components/ui/card";
+import { fadeIn, statCardVariants, staggerContainer } from "@/lib/animations";
 import {
   Plus,
   Download,
@@ -33,6 +34,8 @@ import {
   Trash2,
   AlertTriangle,
   MoreHorizontal,
+  BookOpen,
+  Users,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -41,19 +44,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, getStatusColor } from "@/lib/utils";
+
+const STATUS_BG: Record<string, string> = {
+  Ongoing: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  Upcoming: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  Completed: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+};
 
 function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { bg: string; dot: string; label: string }> = {
-    Ongoing: { bg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20", dot: "bg-emerald-500", label: "Ongoing" },
-    Upcoming: { bg: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20", dot: "bg-amber-500", label: "Upcoming" },
-    Completed: { bg: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20", dot: "bg-blue-500", label: "Completed" },
-  };
-  const c = config[status] || config.Upcoming;
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${c.bg}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${c.dot}`} />
-      {c.label}
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium", STATUS_BG[status] || "bg-muted text-muted-foreground")}>
+      <span className={cn("h-1.5 w-1.5 rounded-full", status === "Ongoing" ? "bg-emerald-500" : status === "Upcoming" ? "bg-amber-500" : "bg-blue-500")} />
+      {status}
     </span>
   );
 }
@@ -64,12 +67,7 @@ function ProgressBar({ status }: { status: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className={`h-full rounded-full ${color}`}
-        />
+        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8, ease: "easeOut" }} className={`h-full rounded-full ${color}`} />
       </div>
       <span className="text-xs tabular-nums text-muted-foreground">{pct}%</span>
     </div>
@@ -77,9 +75,7 @@ function ProgressBar({ status }: { status: string }) {
 }
 
 export default function BatchesPage() {
-  const { data: batches, isLoading, error, createRecord, updateRecord, deleteRecord, refresh } =
-    useSheetsData<Batch>("Batches");
-
+  const { data: batches, isLoading, error, createRecord, updateRecord, deleteRecord, refresh } = useSheetsData<Batch>("Batches");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBatch, setEditingBatch] = useState<Batch | null>(null);
@@ -90,23 +86,17 @@ export default function BatchesPage() {
     return batches.filter((b) => b.Status === statusFilter);
   }, [batches, statusFilter]);
 
-  const stats = useMemo(() => {
-    const total = batches.length;
-    const ongoing = batches.filter((b) => b.Status === "Ongoing").length;
-    const upcoming = batches.filter((b) => b.Status === "Upcoming").length;
-    const completed = batches.filter((b) => b.Status === "Completed").length;
-    return { total, ongoing, upcoming, completed };
-  }, [batches]);
+  const stats = useMemo(() => ({
+    total: batches.length,
+    ongoing: batches.filter((b) => b.Status === "Ongoing").length,
+    upcoming: batches.filter((b) => b.Status === "Upcoming").length,
+    completed: batches.filter((b) => b.Status === "Completed").length,
+  }), [batches]);
 
-  const handleSave = useCallback(
-    async (data: Partial<Batch>) => {
-      let ok = false;
-      if (editingBatch) ok = await updateRecord({ ...data, "Batch ID": editingBatch["Batch ID"] });
-      else ok = await createRecord(data);
-      if (ok) { setIsDialogOpen(false); setEditingBatch(null); }
-    },
-    [editingBatch, updateRecord, createRecord]
-  );
+  const handleSave = useCallback(async (data: Partial<Batch>) => {
+    const ok = editingBatch ? await updateRecord({ ...data, "Batch ID": editingBatch["Batch ID"] }) : await createRecord(data);
+    if (ok) { setIsDialogOpen(false); setEditingBatch(null); }
+  }, [editingBatch, updateRecord, createRecord]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -120,28 +110,32 @@ export default function BatchesPage() {
       label: "Batch",
       render: (b) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/10 to-purple-500/10 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04] text-xs font-bold text-muted-foreground">
             {b["Batch Name"]?.charAt(0) || "B"}
           </div>
           <div>
-            <p className="text-sm font-medium">{b["Batch Name"]}</p>
-            <p className="text-xs text-muted-foreground">ID: {b["Batch ID"]}</p>
+            <p className="text-sm font-medium text-foreground">{b["Batch Name"]}</p>
+            <p className="text-xs text-muted-foreground/60">ID: {b["Batch ID"]}</p>
           </div>
         </div>
       ),
     },
-    { key: "Course", label: "Course" },
-    { key: "Trainer", label: "Trainer" },
+    {
+      key: "Course",
+      label: "Course",
+      render: (b) => <span className="text-sm text-muted-foreground">{b.Course}</span>,
+    },
+    {
+      key: "Trainer",
+      label: "Trainer",
+      render: (b) => <span className="text-sm text-muted-foreground">{b.Trainer}</span>,
+    },
     {
       key: "Start Date",
       label: "Start Date",
       render: (b) => (
         <span className="text-sm text-muted-foreground">
-          {b["Start Date"]
-            ? new Date(b["Start Date"]).toLocaleDateString("en-US", {
-                month: "short", day: "numeric", year: "numeric",
-              })
-            : "—"}
+          {b["Start Date"] ? new Date(b["Start Date"]).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
         </span>
       ),
     },
@@ -164,42 +158,51 @@ export default function BatchesPage() {
       render: (b) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+            <Button variant="ghost" size="icon-sm" className="opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4" /></Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem onClick={() => { setEditingBatch(b); setIsDialogOpen(true); }}>
-              <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-            </DropdownMenuItem>
+          <DropdownMenuContent align="end" className="w-36 border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
+            <DropdownMenuItem onClick={() => { setEditingBatch(b); setIsDialogOpen(true); }}><Pencil className="mr-2 h-3.5 w-3.5" /> Edit</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteTarget(b)}>
-              <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
-            </DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteTarget(b)}><Trash2 className="mr-2 h-3.5 w-3.5" /> Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
     },
   ];
 
-  const statCards = [
-    { icon: Layers, label: "Total Batches", value: stats.total, color: "text-indigo-500", bg: "bg-indigo-500/10" },
-    { icon: PlayCircle, label: "Ongoing", value: stats.ongoing, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-    { icon: Clock, label: "Upcoming", value: stats.upcoming, color: "text-amber-500", bg: "bg-amber-500/10" },
-    { icon: CheckCircle2, label: "Completed", value: stats.completed, color: "text-blue-500", bg: "bg-blue-500/10" },
-  ];
-
   return (
-    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="mx-auto max-w-[1600px] px-4 py-6 lg:px-8">
+      <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { icon: Layers, label: "Total Batches", value: stats.total, desc: "All training groups" },
+          { icon: PlayCircle, label: "Ongoing", value: stats.ongoing, desc: "Currently active" },
+          { icon: Clock, label: "Upcoming", value: stats.upcoming, desc: "Not yet started" },
+          { icon: CheckCircle2, label: "Completed", value: stats.completed, desc: "Finished" },
+        ].map(({ icon: Icon, label, value, desc }, i) => (
+          <motion.div key={label} custom={i} variants={statCardVariants}>
+            <Card className="border-white/[0.06] bg-card shadow-none transition-all duration-200 hover:border-white/[0.10]">
+              <CardContent className="flex items-start gap-4 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]">
+                  <Icon className="h-4.5 w-4.5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
+                  <p className="text-xs text-muted-foreground/60">{label}</p>
+                  <p className="text-[10px] text-muted-foreground/40">{desc}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Batches</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Manage training batches, schedules, trainers, and progress.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Batches</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground/70">Manage training batches, schedules, trainers, and progress.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 gap-1.5">
+          <Button variant="outline" size="sm" className="h-9 gap-1.5 border-white/[0.08]">
             <Download className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Export</span>
           </Button>
@@ -209,48 +212,20 @@ export default function BatchesPage() {
               <span className="hidden sm:inline">Add Batch</span>
               <span className="sm:hidden">Add</span>
             </Button>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>{editingBatch ? "Edit Batch" : "Create Batch"}</DialogTitle>
-              </DialogHeader>
+            <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[500px]">
+              <DialogHeader><DialogTitle>{editingBatch ? "Edit Batch" : "Create Batch"}</DialogTitle></DialogHeader>
               <BatchForm initialData={editingBatch} onSave={handleSave} />
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      <motion.div
-        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
-        initial="hidden"
-        animate="visible"
-        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        {statCards.map((card, i) => (
-          <motion.div
-            key={card.label}
-            custom={i}
-            variants={statCardVariants}
-            className="card-hover rounded-xl border bg-card p-4 shadow-sm"
-          >
-            <div className="flex items-center justify-between">
-              <div className={`rounded-lg p-2 ${card.bg}`}>
-                <card.icon className={`h-4 w-4 ${card.color}`} />
-              </div>
-            </div>
-            <div className="mt-3">
-              <p className="text-2xl font-bold">{isLoading ? "—" : card.value}</p>
-              <p className="text-xs text-muted-foreground">{card.label}</p>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      <div className="flex items-center gap-2">
+      <div className="mb-6">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="h-9 w-36">
+          <SelectTrigger className="h-9 w-36 border-white/[0.08] bg-white/[0.04]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="Ongoing">Ongoing</SelectItem>
             <SelectItem value="Upcoming">Upcoming</SelectItem>
@@ -269,27 +244,17 @@ export default function BatchesPage() {
         searchPlaceholder="Search batches..."
         emptyTitle="No batches yet"
         emptyDescription="Create your first batch to start managing courses, trainers, and student progress."
-        emptyAction={
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Batch
-          </Button>
-        }
+        emptyAction={<Button onClick={() => setIsDialogOpen(true)}><Plus className="mr-2 h-4 w-4" />Create Batch</Button>}
         rowKey={(b) => b["Batch ID"] || Math.random().toString()}
         pageSize={10}
       />
 
       <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              Delete Batch
-            </DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="h-5 w-5" /> Delete Batch</DialogTitle>
             <DialogDescription className="pt-2">
-              Are you sure you want to delete{" "}
-              <span className="font-semibold text-foreground">&ldquo;{deleteTarget?.["Batch Name"]}&rdquo;</span>?
-              This action cannot be undone.
+              Are you sure you want to delete <span className="font-semibold text-foreground">&ldquo;{deleteTarget?.["Batch Name"]}&rdquo;</span>? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 pt-2">
