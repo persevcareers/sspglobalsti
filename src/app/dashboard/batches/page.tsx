@@ -1,25 +1,15 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Batch } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
@@ -30,35 +20,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BatchForm } from "@/components/forms/BatchForm";
-import { TableSkeleton } from "@/components/common/loading-skeleton";
-import { fadeIn, statCardVariants, tableRowVariants } from "@/lib/animations";
+import { DataTable, Column } from "@/components/tables/data-table";
+import { fadeIn, statCardVariants } from "@/lib/animations";
 import {
   Plus,
-  Search,
   Download,
-  GraduationCap,
   PlayCircle,
   Clock,
   CheckCircle2,
-  MoreHorizontal,
+  Layers,
   Pencil,
   Trash2,
-  ArrowUpDown,
   AlertTriangle,
-  Layers,
-  ChevronLeft,
-  ChevronRight,
+  MoreHorizontal,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-type SortField = "Batch Name" | "Course" | "Trainer" | "Start Date" | "Status";
-type SortDir = "asc" | "desc";
+import { cn } from "@/lib/utils";
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; dot: string; label: string }> = {
@@ -93,71 +76,19 @@ function ProgressBar({ status }: { status: string }) {
   );
 }
 
-function EmptyState({ onAdd }: { onAdd: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center justify-center py-16"
-    >
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
-        <Layers className="h-8 w-8 text-muted-foreground" />
-      </div>
-      <h3 className="mb-1 text-lg font-semibold">No batches yet</h3>
-      <p className="mb-6 max-w-sm text-center text-sm text-muted-foreground">
-        Create your first batch to start managing courses, trainers, and student progress.
-      </p>
-      <Button onClick={onAdd}>
-        <Plus className="mr-2 h-4 w-4" />
-        Create Batch
-      </Button>
-    </motion.div>
-  );
-}
-
 export default function BatchesPage() {
   const { data: batches, isLoading, error, createRecord, updateRecord, deleteRecord, refresh } =
     useSheetsData<Batch>("Batches");
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortField, setSortField] = useState<SortField>("Start Date");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBatch, setEditingBatch] = useState<Batch | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Batch | null>(null);
 
   const filtered = useMemo(() => {
-    let result = [...batches];
-
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      result = result.filter(
-        (b) =>
-          b["Batch Name"]?.toLowerCase().includes(q) ||
-          b.Course?.toLowerCase().includes(q) ||
-          b.Trainer?.toLowerCase().includes(q)
-      );
-    }
-
-    if (statusFilter !== "all") {
-      result = result.filter((b) => b.Status === statusFilter);
-    }
-
-    result.sort((a, b) => {
-      const aVal = (a[sortField] || "").toString().toLowerCase();
-      const bVal = (b[sortField] || "").toString().toLowerCase();
-      const cmp = aVal.localeCompare(bVal);
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-
-    return result;
-  }, [batches, searchTerm, statusFilter, sortField, sortDir]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+    if (statusFilter === "all") return batches;
+    return batches.filter((b) => b.Status === statusFilter);
+  }, [batches, statusFilter]);
 
   const stats = useMemo(() => {
     const total = batches.length;
@@ -167,26 +98,12 @@ export default function BatchesPage() {
     return { total, ongoing, upcoming, completed };
   }, [batches]);
 
-  const toggleSort = (field: SortField) => {
-    if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else {
-      setSortField(field);
-      setSortDir("asc");
-    }
-  };
-
   const handleSave = useCallback(
     async (data: Partial<Batch>) => {
       let ok = false;
-      if (editingBatch) {
-        ok = await updateRecord({ ...data, "Batch ID": editingBatch["Batch ID"] });
-      } else {
-        ok = await createRecord(data);
-      }
-      if (ok) {
-        setIsDialogOpen(false);
-        setEditingBatch(null);
-      }
+      if (editingBatch) ok = await updateRecord({ ...data, "Batch ID": editingBatch["Batch ID"] });
+      else ok = await createRecord(data);
+      if (ok) { setIsDialogOpen(false); setEditingBatch(null); }
     },
     [editingBatch, updateRecord, createRecord]
   );
@@ -197,10 +114,73 @@ export default function BatchesPage() {
     setDeleteTarget(null);
   };
 
-  const handleEdit = (batch: Batch) => {
-    setEditingBatch(batch);
-    setIsDialogOpen(true);
-  };
+  const columns: Column<Batch>[] = [
+    {
+      key: "Batch Name",
+      label: "Batch",
+      render: (b) => (
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/10 to-purple-500/10 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+            {b["Batch Name"]?.charAt(0) || "B"}
+          </div>
+          <div>
+            <p className="text-sm font-medium">{b["Batch Name"]}</p>
+            <p className="text-xs text-muted-foreground">ID: {b["Batch ID"]}</p>
+          </div>
+        </div>
+      ),
+    },
+    { key: "Course", label: "Course" },
+    { key: "Trainer", label: "Trainer" },
+    {
+      key: "Start Date",
+      label: "Start Date",
+      render: (b) => (
+        <span className="text-sm text-muted-foreground">
+          {b["Start Date"]
+            ? new Date(b["Start Date"]).toLocaleDateString("en-US", {
+                month: "short", day: "numeric", year: "numeric",
+              })
+            : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "Status",
+      label: "Status",
+      render: (b) => <StatusBadge status={b.Status} />,
+    },
+    {
+      key: "progress",
+      label: "Progress",
+      sortable: false,
+      render: (b) => <ProgressBar status={b.Status} />,
+    },
+    {
+      key: "actions",
+      label: "",
+      sortable: false,
+      cellClass: "text-right",
+      render: (b) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-36">
+            <DropdownMenuItem onClick={() => { setEditingBatch(b); setIsDialogOpen(true); }}>
+              <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteTarget(b)}>
+              <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
   const statCards = [
     { icon: Layers, label: "Total Batches", value: stats.total, color: "text-indigo-500", bg: "bg-indigo-500/10" },
@@ -208,17 +188,6 @@ export default function BatchesPage() {
     { icon: Clock, label: "Upcoming", value: stats.upcoming, color: "text-amber-500", bg: "bg-amber-500/10" },
     { icon: CheckCircle2, label: "Completed", value: stats.completed, color: "text-blue-500", bg: "bg-blue-500/10" },
   ];
-
-  if (error) {
-    return (
-      <motion.div variants={fadeIn} initial="hidden" animate="visible" className="flex flex-col items-center justify-center py-16">
-        <AlertTriangle className="mb-4 h-12 w-12 text-destructive" />
-        <h3 className="mb-2 text-lg font-semibold">Failed to load batches</h3>
-        <p className="mb-4 text-sm text-muted-foreground">{error}</p>
-        <Button variant="outline" onClick={refresh}>Try Again</Button>
-      </motion.div>
-    );
-  }
 
   return (
     <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
@@ -234,17 +203,12 @@ export default function BatchesPage() {
             <Download className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Export</span>
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) setEditingBatch(null);
-          }}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="h-9 gap-1.5">
-                <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Add Batch</span>
-                <span className="sm:hidden">Add</span>
-              </Button>
-            </DialogTrigger>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingBatch(null); }}>
+            <Button size="sm" className="h-9 gap-1.5" onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Add Batch</span>
+              <span className="sm:hidden">Add</span>
+            </Button>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>{editingBatch ? "Edit Batch" : "Create Batch"}</DialogTitle>
@@ -266,7 +230,7 @@ export default function BatchesPage() {
             key={card.label}
             custom={i}
             variants={statCardVariants}
-            className="rounded-xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+            className="card-hover rounded-xl border bg-card p-4 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <div className={`rounded-lg p-2 ${card.bg}`}>
@@ -281,182 +245,41 @@ export default function BatchesPage() {
         ))}
       </motion.div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 items-center gap-2">
-          <div className="relative flex-1 sm:max-w-xs">
-            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search batches..."
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
-              className="h-9 pl-8"
-            />
-          </div>
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => { setStatusFilter(v); setPage(1); }}
-          >
-            <SelectTrigger className="h-9 w-32">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Ongoing">Ongoing</SelectItem>
-              <SelectItem value="Upcoming">Upcoming</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {!isLoading && (
-          <p className="text-xs text-muted-foreground">
-            {filtered.length} batch{filtered.length !== 1 ? "es" : ""}
-          </p>
-        )}
+      <div className="flex items-center gap-2">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-9 w-36">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="Ongoing">Ongoing</SelectItem>
+            <SelectItem value="Upcoming">Upcoming</SelectItem>
+            <SelectItem value="Completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {isLoading ? (
-        <TableSkeleton rows={5} />
-      ) : paginated.length === 0 ? (
-        <EmptyState onAdd={() => setIsDialogOpen(true)} />
-      ) : (
-        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b bg-muted/30 hover:bg-muted/30">
-                  {(["Batch Name", "Course", "Trainer", "Start Date", "Status"] as const).map((field) => (
-                    <TableHead key={field} className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      <button
-                        onClick={() => toggleSort(field)}
-                        className="flex items-center gap-1 hover:text-foreground"
-                      >
-                        {field === "Batch Name" ? "Batch" : field}
-                        <ArrowUpDown className="h-3 w-3" />
-                      </button>
-                    </TableHead>
-                  ))}
-                  <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Progress
-                  </TableHead>
-                  <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginated.map((batch, index) => (
-                  <motion.tr
-                    key={batch["Batch ID"] || index}
-                    custom={index}
-                    variants={tableRowVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="group border-b transition-colors hover:bg-muted/40"
-                  >
-                    <TableCell className="py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/10 to-purple-500/10 text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                          {batch["Batch Name"]?.charAt(0) || "B"}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">{batch["Batch Name"]}</p>
-                          <p className="text-xs text-muted-foreground">ID: {batch["Batch ID"]}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-3 text-sm">{batch.Course || "—"}</TableCell>
-                    <TableCell className="py-3 text-sm">{batch.Trainer || "—"}</TableCell>
-                    <TableCell className="py-3 text-sm text-muted-foreground">
-                      {batch["Start Date"]
-                        ? new Date(batch["Start Date"]).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <StatusBadge status={batch.Status} />
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <ProgressBar status={batch.Status} />
-                    </TableCell>
-                    <TableCell className="py-3 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-36">
-                          <DropdownMenuItem onClick={() => handleEdit(batch)}>
-                            <Pencil className="mr-2 h-3.5 w-3.5" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteTarget(batch)}
-                          >
-                            <Trash2 className="mr-2 h-3.5 w-3.5" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </motion.tr>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+      <DataTable<Batch>
+        data={filtered}
+        columns={columns}
+        isLoading={isLoading}
+        error={error}
+        onRetry={refresh}
+        searchFields={["Batch Name", "Course", "Trainer"]}
+        searchPlaceholder="Search batches..."
+        emptyTitle="No batches yet"
+        emptyDescription="Create your first batch to start managing courses, trainers, and student progress."
+        emptyAction={
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Batch
+          </Button>
+        }
+        rowKey={(b) => b["Batch ID"] || Math.random().toString()}
+        pageSize={10}
+      />
 
-          <div className="flex items-center justify-between border-t px-4 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Rows per page</span>
-              <Select
-                value={String(pageSize)}
-                onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}
-              >
-                <SelectTrigger className="h-7 w-16 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[5, 10, 20, 50].map((n) => (
-                    <SelectItem key={n} value={String(n)}>{n}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                Page {page} of {totalPages}
-              </span>
-              <div className="flex gap-0.5">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-7 w-7"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  <ChevronLeft className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-7 w-7"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  <ChevronRight className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
@@ -470,12 +293,8 @@ export default function BatchesPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete}>
-              Delete
-            </Button>
+            <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
           </div>
         </DialogContent>
       </Dialog>
