@@ -2,7 +2,7 @@
 
 An **internal training institute management platform** for SSP Global. TrackSuite handles end-to-end administration of students, courses, batches, trainers, schedules, leads, and user sessions with role-based access control — all powered by Google Sheets as the operational data store.
 
-> **Live:** [tracking-app](ssp-global-sti-ts.vercel.app)
+> **Live:** [Tracking-Application](ssp-global-sti-ts.vercel.app)
 
 ---
 
