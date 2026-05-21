@@ -72,11 +72,11 @@ export function useSheetsData<T>(sheetName: SheetName) {
   };
 
   const updateRecord = async (recordData: Partial<T>): Promise<boolean> => {
-    const recordId = getRecordId(recordData);
+    const recordId = getRecordId(recordData as Record<string, unknown>);
     const previousData = [...data];
     setData((prev) =>
       prev.map((item) => {
-        const itemId = getRecordId(item);
+        const itemId = getRecordId(item as Record<string, unknown>);
         return itemId && recordId && itemId === recordId ? { ...item, ...recordData } : item;
       })
     );
@@ -100,11 +100,11 @@ export function useSheetsData<T>(sheetName: SheetName) {
   };
 
   const deleteRecord = async (recordData: Partial<T>): Promise<boolean> => {
-    const recordId = getRecordId(recordData);
+    const recordId = getRecordId(recordData as Record<string, unknown>);
     const previousData = [...data];
     setData((prev) =>
       prev.filter((item) => {
-        const itemId = getRecordId(item);
+        const itemId = getRecordId(item as Record<string, unknown>);
         return !(itemId && recordId && itemId === recordId);
       })
     );

@@ -1,13 +1,16 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Student, Lead, Course, Batch } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Users, Target, GraduationCap, Percent, BookOpen } from "lucide-react";
+import { Users, Target, GraduationCap, Percent, BookOpen } from "lucide-react";
 import { AreaChart } from "@/components/charts/area-chart";
 import { BarChart } from "@/components/charts/bar-chart";
 import { PieChart } from "@/components/charts/pie-chart";
 import { ProgressChart } from "@/components/charts/progress-chart";
+import { ChartSkeleton } from "@/components/common/loading-skeleton";
+import { fadeIn, statCardVariants } from "@/lib/animations";
 
 export default function AnalyticsPage() {
   const { data: students, isLoading: studentsLoading } = useSheetsData<Student>("Students");
@@ -102,92 +105,87 @@ export default function AnalyticsPage() {
     { name: "UI/UX Design - B3", progress: 10 },
   ];
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const statCards = [
+    { title: "Total Students", icon: Users, value: students.length, subtitle: "Active profiles on system" },
+    { title: "Total Leads", icon: Target, value: leads.length, subtitle: "Total captured opportunities" },
+    { title: "Conversion Rate", icon: Percent, value: `${conversionRate}%`, subtitle: "Leads converted to students" },
+    { title: "Running Batches", icon: GraduationCap, value: batches.filter((b) => b.Status === "Ongoing").length, subtitle: "Batches currently in progress" },
+  ];
 
   return (
-    <div className="space-y-6">
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Analytics & Reports</h1>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{students.length}</div>
-            <p className="text-xs text-muted-foreground">Active profiles on system</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{leads.length}</div>
-            <p className="text-xs text-muted-foreground">Total captured opportunities</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-            <Percent className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{conversionRate}%</div>
-            <p className="text-xs text-muted-foreground">Leads converted to students</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Running Batches</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {batches.filter((b) => b.Status === "Ongoing").length}
-            </div>
-            <p className="text-xs text-muted-foreground">Batches currently in progress</p>
-          </CardContent>
-        </Card>
+        {statCards.map((card, i) => (
+          <motion.div
+            key={card.title}
+            custom={i}
+            variants={statCardVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                <card.icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{card.value}</div>
+                <p className="text-xs text-muted-foreground">{card.subtitle}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
       </div>
 
       {/* Advanced Charting section */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <AreaChart
-          title="Student Enrollment Growth"
-          data={finalEnrollmentTrendData}
-          className="lg:col-span-4"
-        />
-        <PieChart
-          title="Lead Sources Distribution"
-          data={finalLeadSourceData}
-          className="lg:col-span-3"
-        />
+        {isLoading ? (
+          <>
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </>
+        ) : (
+          <>
+            <AreaChart
+              title="Student Enrollment Growth"
+              data={finalEnrollmentTrendData}
+              className="lg:col-span-4"
+            />
+            <PieChart
+              title="Lead Sources Distribution"
+              data={finalLeadSourceData}
+              className="lg:col-span-3"
+            />
+          </>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <PieChart
-          title="Students Status Distribution"
-          data={finalStudentStatusData}
-          className="lg:col-span-3"
-        />
-        <ProgressChart
-          title="Batch Progress Breakdown"
-          data={finalBatchProgressData}
-          className="lg:col-span-4"
-        />
+        {isLoading ? (
+          <>
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </>
+        ) : (
+          <>
+            <PieChart
+              title="Students Status Distribution"
+              data={finalStudentStatusData}
+              className="lg:col-span-3"
+            />
+            <ProgressChart
+              title="Batch Progress Breakdown"
+              data={finalBatchProgressData}
+              className="lg:col-span-4"
+            />
+          </>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 }

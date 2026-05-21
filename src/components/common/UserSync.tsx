@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { fetchSheetData, modifySheetData, callSessionAction } from "@/services/api";
-import { User, LoginLog } from "@/types";
+import { User, LoginLog, UserRole } from "@/types";
 
 function getDeviceInfo() {
   if (typeof window === "undefined") return { device: "", browser: "" };
@@ -73,7 +73,7 @@ export function UserSync() {
         const existingUsers = await fetchSheetData<User>("Users");
         const existingUser = existingUsers.find((u) => u["User ID"] === currentUserId);
 
-        const userRole = (user.publicMetadata?.role as string) || "Pending";
+        const userRole = (user.publicMetadata?.role as UserRole) || "Pending";
 
         if (!existingUser) {
           const newUserRecord: Partial<User> = {

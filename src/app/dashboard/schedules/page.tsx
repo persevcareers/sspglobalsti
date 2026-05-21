@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { DailySchedule } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,6 @@ import {
 import {
   Plus,
   Search,
-  Loader2,
   Calendar,
   Clock,
   CheckCircle2,
@@ -47,6 +47,8 @@ import {
   determineAutoStatus,
   formatToISTDateTime,
 } from "@/utils/dateUtils";
+import { TableSkeleton } from "@/components/common/loading-skeleton";
+import { fadeIn, tableRowVariants, statCardVariants } from "@/lib/animations";
 
 // Helper component for bulk schedule creation
 function BulkScheduleForm({
@@ -295,7 +297,7 @@ export default function SchedulesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
       {/* Title & Actions */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -350,47 +352,24 @@ export default function SchedulesPage() {
       </div>
 
       {/* Stats Summary Grid */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm shadow-sm flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
-            <Calendar className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Total Schedules</p>
-            <h3 className="text-xl font-bold">{isLoading ? "..." : stats.total}</h3>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm shadow-sm flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
-            <Activity className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Currently Running</p>
-            <h3 className="text-xl font-bold">{isLoading ? "..." : stats.running}</h3>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm shadow-sm flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-teal-500/10 text-teal-500">
-            <CheckCircle2 className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Completed Tasks</p>
-            <h3 className="text-xl font-bold">{isLoading ? "..." : stats.completed}</h3>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm shadow-sm flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
-            <AlertTriangle className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Exceptions/Holidays</p>
-            <h3 className="text-xl font-bold">{isLoading ? "..." : stats.exceptions}</h3>
-          </div>
-        </div>
-      </div>
+      <motion.div variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }} initial="hidden" animate="visible" className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        {[
+          { icon: Calendar, color: "text-indigo-500", bg: "bg-indigo-500/10", label: "Total Schedules", value: stats.total },
+          { icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10", label: "Currently Running", value: stats.running },
+          { icon: CheckCircle2, color: "text-teal-500", bg: "bg-teal-500/10", label: "Completed Tasks", value: stats.completed },
+          { icon: AlertTriangle, color: "text-amber-500", bg: "bg-amber-500/10", label: "Exceptions/Holidays", value: stats.exceptions },
+        ].map((card, i) => (
+          <motion.div key={card.label} custom={i} variants={statCardVariants} className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm shadow-sm flex items-center space-x-3">
+            <div className={`p-2 rounded-lg ${card.bg} ${card.color}`}>
+              <card.icon className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">{card.label}</p>
+              <h3 className="text-xl font-bold">{isLoading ? "..." : card.value}</h3>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Search Input */}
       <div className="flex items-center gap-2 max-w-sm">
@@ -424,11 +403,8 @@ export default function SchedulesPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="h-32 text-center">
-                    <div className="flex flex-col items-center justify-center space-y-2">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Retrieving schedules...</span>
-                    </div>
+                  <TableCell colSpan={10}>
+                    <TableSkeleton rows={4} />
                   </TableCell>
                 </TableRow>
               ) : sortedSchedules.length === 0 ? (
@@ -439,7 +415,14 @@ export default function SchedulesPage() {
                 </TableRow>
               ) : (
                 sortedSchedules.map((schedule, index) => (
-                  <TableRow key={schedule["Task ID"] || index} className="hover:bg-muted/30 transition-colors">
+                  <motion.tr
+                    key={schedule["Task ID"] || index}
+                    custom={index}
+                    variants={tableRowVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="border-b transition-colors hover:bg-muted/30"
+                  >
                     <TableCell className="font-mono text-xs text-muted-foreground">{schedule["Task ID"]}</TableCell>
                     <TableCell className="font-medium text-foreground">{schedule["Batch Name"]}</TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{schedule["Schedule Date"]}</TableCell>
@@ -487,7 +470,7 @@ export default function SchedulesPage() {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
-                  </TableRow>
+                  </motion.tr>
                 ))
               )}
             </TableBody>
@@ -521,6 +504,6 @@ export default function SchedulesPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }

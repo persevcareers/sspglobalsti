@@ -1,12 +1,14 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Student, Lead, Course, Batch } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, GraduationCap, Target, BookOpen } from "lucide-react";
+import { Users, Target, BookOpen } from "lucide-react";
 import { AreaChart } from "@/components/charts/area-chart";
 import { BarChart } from "@/components/charts/bar-chart";
 import { OnlineUsersWidget } from "@/components/dashboard/online-users";
+import { fadeIn, statCardVariants } from "@/lib/animations";
 
 export default function DashboardPage() {
   const { data: students, isLoading: studentsLoading } = useSheetsData<Student>("Students");
@@ -32,41 +34,37 @@ export default function DashboardPage() {
     { name: "Batch D", value: 95 },
   ];
 
+  const statsCards = [
+    { title: "Total Students", icon: Users, value: students.length, subtitle: "+12% from last month" },
+    { title: "Active Leads", icon: Target, value: leads.length, subtitle: "+4% from last month" },
+    { title: "Active Courses", icon: BookOpen, value: courses.length, subtitle: "Across all programs" },
+  ];
+
   return (
-    <div className="space-y-6">
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? "..." : students.length}</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Leads</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? "..." : leads.length}</div>
-            <p className="text-xs text-muted-foreground">+4% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Courses</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? "..." : courses.length}</div>
-            <p className="text-xs text-muted-foreground">Across all programs</p>
-          </CardContent>
-        </Card>
+        {statsCards.map((card, i) => (
+          <motion.div
+            key={card.title}
+            custom={i}
+            variants={statCardVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                <card.icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{isLoading ? "..." : card.value}</div>
+                <p className="text-xs text-muted-foreground">{card.subtitle}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
         <OnlineUsersWidget />
       </div>
 
@@ -82,6 +80,6 @@ export default function DashboardPage() {
           className="lg:col-span-3"
         />
       </div>
-    </div>
+    </motion.div>
   );
 }

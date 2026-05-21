@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Trainer } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { TrainerForm } from "@/components/forms/TrainerForm";
 import {
   Dialog,
@@ -22,6 +23,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { TableSkeleton } from "@/components/common/loading-skeleton";
+import { fadeIn, tableRowVariants } from "@/lib/animations";
 
 export default function TrainersPage() {
   const { data: trainers, isLoading, createRecord, updateRecord, deleteRecord } = useSheetsData<Trainer>("Trainers");
@@ -61,7 +64,7 @@ export default function TrainersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Trainers</h1>
         
@@ -109,8 +112,8 @@ export default function TrainersPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                <TableCell colSpan={6}>
+                  <TableSkeleton rows={4} />
                 </TableCell>
               </TableRow>
             ) : filteredTrainers.length === 0 ? (
@@ -121,7 +124,14 @@ export default function TrainersPage() {
               </TableRow>
             ) : (
               filteredTrainers.map((trainer, index) => (
-                <TableRow key={trainer["Trainer ID"] || index}>
+                <motion.tr
+                  key={trainer["Trainer ID"] || index}
+                  custom={index}
+                  variants={tableRowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="border-b transition-colors hover:bg-muted/50"
+                >
                   <TableCell className="font-medium">{trainer.Name}</TableCell>
                   <TableCell>{trainer.Email}</TableCell>
                   <TableCell>{trainer.Phone}</TableCell>
@@ -135,12 +145,12 @@ export default function TrainersPage() {
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(trainer)}>Edit</Button>
                     <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDelete(trainer)}>Delete</Button>
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))
             )}
           </TableBody>
         </Table>
       </div>
-    </div>
+    </motion.div>
   );
 }

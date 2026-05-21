@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Lead } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { LeadForm } from "@/components/forms/LeadForm";
 import {
   Dialog,
@@ -22,6 +23,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { TableSkeleton } from "@/components/common/loading-skeleton";
+import { fadeIn, tableRowVariants } from "@/lib/animations";
 
 export default function LeadsPage() {
   const { data: leads, isLoading, createRecord, updateRecord, deleteRecord } = useSheetsData<Lead>("Leads");
@@ -61,7 +64,7 @@ export default function LeadsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
         
@@ -110,8 +113,8 @@ export default function LeadsPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                <TableCell colSpan={7}>
+                  <TableSkeleton rows={4} />
                 </TableCell>
               </TableRow>
             ) : filteredLeads.length === 0 ? (
@@ -122,7 +125,14 @@ export default function LeadsPage() {
               </TableRow>
             ) : (
               filteredLeads.map((lead, index) => (
-                <TableRow key={lead["Lead ID"] || index}>
+                <motion.tr
+                  key={lead["Lead ID"] || index}
+                  custom={index}
+                  variants={tableRowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="border-b transition-colors hover:bg-muted/50"
+                >
                   <TableCell className="font-medium">{lead["Lead Name"]}</TableCell>
                   <TableCell>{lead["Contact"]}</TableCell>
                   <TableCell>{lead["Source"]}</TableCell>
@@ -137,12 +147,12 @@ export default function LeadsPage() {
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(lead)}>Edit</Button>
                     <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDelete(lead)}>Delete</Button>
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))
             )}
           </TableBody>
         </Table>
       </div>
-    </div>
+    </motion.div>
   );
 }

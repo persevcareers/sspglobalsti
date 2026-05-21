@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Student } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { StudentForm } from "@/components/forms/StudentForm";
 import {
   Dialog,
@@ -22,6 +23,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { TableSkeleton } from "@/components/common/loading-skeleton";
+import { fadeIn, tableRowVariants, staggerContainer } from "@/lib/animations";
 
 export default function StudentsPage() {
   const { data: students, isLoading, createRecord, updateRecord, deleteRecord } = useSheetsData<Student>("Students");
@@ -61,7 +64,7 @@ export default function StudentsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Students</h1>
         
@@ -110,8 +113,8 @@ export default function StudentsPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                <TableCell colSpan={7}>
+                  <TableSkeleton rows={4} />
                 </TableCell>
               </TableRow>
             ) : filteredStudents.length === 0 ? (
@@ -122,7 +125,14 @@ export default function StudentsPage() {
               </TableRow>
             ) : (
               filteredStudents.map((student, index) => (
-                <TableRow key={student["Student ID"] || index}>
+                <motion.tr
+                  key={student["Student ID"] || index}
+                  custom={index}
+                  variants={tableRowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="border-b transition-colors hover:bg-muted/50"
+                >
                   <TableCell className="font-medium">{student["Full Name"]}</TableCell>
                   <TableCell>{student["Email"]}</TableCell>
                   <TableCell>{student["Course"]}</TableCell>
@@ -133,12 +143,12 @@ export default function StudentsPage() {
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(student)}>Edit</Button>
                     <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDelete(student)}>Delete</Button>
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))
             )}
           </TableBody>
         </Table>
       </div>
-    </div>
+    </motion.div>
   );
 }

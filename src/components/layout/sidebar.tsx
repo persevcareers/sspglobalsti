@@ -3,34 +3,54 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { SIDEBAR_ITEMS } from "@/constants";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
-  Calendar,
-  Target,
   GraduationCap,
-  BarChart3,
+  BookOpen,
+  CalendarRange,
+  Target,
+  UserSquare2,
+  LineChart,
   Settings,
-  X,
-  Layers,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 
-const iconMap: Record<string, React.ElementType> = {
-  LayoutDashboard,
-  Users,
-  BookOpen,
-  Calendar,
-  Target,
-  GraduationCap,
-  BarChart3,
-  Settings,
-  Layers,
+const navItems = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/students", label: "Students", icon: Users },
+  { href: "/dashboard/courses", label: "Courses", icon: BookOpen },
+  { href: "/dashboard/batches", label: "Batches", icon: GraduationCap },
+  { href: "/dashboard/trainers", label: "Trainers", icon: UserSquare2 },
+  { href: "/dashboard/schedules", label: "Schedules", icon: CalendarRange },
+  { href: "/dashboard/leads", label: "Leads", icon: Target },
+  { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+];
+
+const sidebarVariants = {
+  expanded: { width: 288 },
+  collapsed: { width: 64 },
+};
+
+const navItemVariants = {
+  hidden: { opacity: 0, x: -16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.3, delay: i * 0.04 },
+  }),
 };
 
 interface SidebarProps {
@@ -40,111 +60,143 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("sidebar-collapsed") === "true";
+  });
 
-  // Load initial collapsed state on mount
   useEffect(() => {
-    const saved = localStorage.getItem("sidebar-collapsed");
-    if (saved === "true") {
-      setIsCollapsed(true);
-    }
-  }, []);
-
-  const toggleCollapse = () => {
-    const next = !isCollapsed;
-    setIsCollapsed(next);
-    localStorage.setItem("sidebar-collapsed", String(next));
-  };
+    localStorage.setItem("sidebar-collapsed", String(collapsed));
+  }, [collapsed]);
 
   return (
     <>
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
-          onClick={onClose}
-        />
-      )}
-      <aside
+      {/* Mobile overlay */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            onClick={onClose}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
+      <motion.aside
+        initial={false}
+        animate={collapsed ? "collapsed" : "expanded"}
+        variants={sidebarVariants}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
-          "fixed top-0 left-0 z-50 h-full border-r border-border/40 bg-background/95 backdrop-blur-xl transition-all duration-300 md:static md:translate-x-0",
-          isCollapsed ? "w-72 md:w-16" : "w-72",
-          open ? "translate-x-0" : "-translate-x-full"
+          "fixed left-0 top-0 z-50 flex h-screen flex-col border-r bg-card backdrop-blur-xl",
+          "md:relative md:z-0",
+          collapsed ? "w-16" : "w-72",
+          open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className={cn(
-          "flex h-16 items-center justify-between border-b border-border/40 px-4 transition-all duration-300",
-          isCollapsed ? "md:px-3" : "px-6 md:px-5"
-        )}>
-          <Link href="/dashboard" className="flex items-center gap-2" onClick={onClose}>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-[10px] font-black text-white uppercase flex-shrink-0">
-              STI
-            </div>
-            {!isCollapsed && (
-              <div className="flex flex-col animate-in fade-in duration-200">
-                <span className="text-sm font-bold tracking-tight text-foreground leading-none">STI Tracksuite</span>
-                <span className="text-[9px] font-semibold text-muted-foreground tracking-wider uppercase leading-none mt-1">SSP Global</span>
-              </div>
-            )}
-          </Link>
-          
-          <button
-            onClick={toggleCollapse}
-            className="hidden md:flex h-5 w-5 items-center justify-center rounded border border-border/80 bg-background text-muted-foreground hover:bg-accent hover:text-foreground transition-all shadow-sm flex-shrink-0"
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-          </button>
-
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1 text-muted-foreground hover:bg-accent md:hidden"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <nav className="flex flex-col gap-1 p-3">
-          {SIDEBAR_ITEMS.map((item) => {
-            const Icon = iconMap[item.icon];
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-            
-            const linkContent = (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={cn(
-                  "group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                  isCollapsed ? "md:justify-center md:px-2" : "gap-3",
-                  isActive
-                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                )}
+        <div className={cn("flex h-16 items-center border-b px-4", collapsed && "justify-center px-2")}>
+          <AnimatePresence mode="wait">
+            {!collapsed ? (
+              <motion.span
+                key="logo-text"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                className="text-lg font-bold tracking-tight whitespace-nowrap"
               >
-                <Icon className="h-4 w-4 flex-shrink-0" />
-                <span className={cn("transition-all duration-200", isCollapsed ? "md:hidden" : "")}>{item.label}</span>
-                {isActive && (
-                  <div className={cn("ml-auto h-1.5 w-1.5 rounded-full bg-blue-500", isCollapsed ? "md:hidden" : "")} />
-                )}
-              </Link>
-            );
+                STI TrackSuite
+              </motion.span>
+            ) : (
+              <motion.span
+                key="logo-icon"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                className="text-lg font-bold"
+              >
+                S
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
 
-            if (isCollapsed) {
+        <ScrollArea className="flex-1 py-2">
+          <nav className="flex flex-col gap-1 px-2">
+            {navItems.map((item, i) => {
+              const isActive = pathname === item.href;
               return (
-                <Tooltip key={item.href}>
-                  <TooltipTrigger asChild>
-                    {linkContent}
-                  </TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={10} className="hidden md:block">
-                    {item.label}
-                  </TooltipContent>
-                </Tooltip>
+                <motion.div
+                  key={item.href}
+                  custom={i}
+                  variants={navItemVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <TooltipProvider delayDuration={collapsed ? 100 : 1000}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link href={item.href} onClick={onClose}>
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              "w-full justify-start gap-3 transition-all duration-200",
+                              collapsed ? "px-3" : "px-3",
+                              isActive
+                                ? "bg-accent text-accent-foreground font-medium"
+                                : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                            )}
+                          >
+                            <item.icon className="h-4 w-4 shrink-0" />
+                            <AnimatePresence mode="wait">
+                              {!collapsed && (
+                                <motion.span
+                                  initial={{ opacity: 0, width: 0 }}
+                                  animate={{ opacity: 1, width: "auto" }}
+                                  exit={{ opacity: 0, width: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden whitespace-nowrap"
+                                >
+                                  {item.label}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+                          </Button>
+                        </Link>
+                      </TooltipTrigger>
+                      {collapsed && (
+                        <TooltipContent side="right" sideOffset={10}>
+                          {item.label}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                </motion.div>
               );
-            }
+            })}
+          </nav>
+        </ScrollArea>
 
-            return linkContent;
-          })}
-        </nav>
-      </aside>
+        <div className={cn("border-t p-2", collapsed && "flex justify-center")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+            className="hidden md:flex h-8 w-full justify-center"
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </motion.aside>
     </>
   );
 }

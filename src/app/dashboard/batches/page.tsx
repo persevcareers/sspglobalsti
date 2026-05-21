@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Batch } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { BatchForm } from "@/components/forms/BatchForm";
 import {
   Dialog,
@@ -22,6 +23,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { TableSkeleton } from "@/components/common/loading-skeleton";
+import { fadeIn, tableRowVariants } from "@/lib/animations";
 
 export default function BatchesPage() {
   const { data: batches, isLoading, createRecord, updateRecord, deleteRecord } = useSheetsData<Batch>("Batches");
@@ -62,7 +65,7 @@ export default function BatchesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Batches</h1>
         
@@ -110,8 +113,8 @@ export default function BatchesPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                <TableCell colSpan={6}>
+                  <TableSkeleton rows={4} />
                 </TableCell>
               </TableRow>
             ) : filteredBatches.length === 0 ? (
@@ -122,7 +125,14 @@ export default function BatchesPage() {
               </TableRow>
             ) : (
               filteredBatches.map((batch, index) => (
-                <TableRow key={batch["Batch ID"] || index}>
+                <motion.tr
+                  key={batch["Batch ID"] || index}
+                  custom={index}
+                  variants={tableRowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="border-b transition-colors hover:bg-muted/50"
+                >
                   <TableCell className="font-medium">{batch["Batch Name"]}</TableCell>
                   <TableCell>{batch.Course}</TableCell>
                   <TableCell>{batch.Trainer}</TableCell>
@@ -144,12 +154,12 @@ export default function BatchesPage() {
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(batch)}>Edit</Button>
                     <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDelete(batch)}>Delete</Button>
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))
             )}
           </TableBody>
         </Table>
       </div>
-    </div>
+    </motion.div>
   );
 }
