@@ -48,9 +48,13 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 - **Activity Tracking** — Mouse/keyboard/scroll idle detection with automatic status updates
 
 ### Notifications
-- **Bell Dropdown** — Glassmorphism panel (`backdrop-blur-xl`, `#111118/95`) with dynamic type-based icons (Handshake for welcome, LogIn for sessions, Calendar for schedules, CheckCircle/AlertTriangle/XCircle for success/warning/error), grouped by Today/Yesterday/Earlier with section headers, unread blue dot indicator with glow, mark all read button, relative timestamps (just now, 5m ago, yesterday), framer-motion staggered entry, custom thin scrollbar, skeleton loading state, and empty state with Inbox icon
+- **Enterprise Schema** — 19-column sheet with `notificationId`, `organizationId`, `branchId`, `userId`, `actorId`, `sourceModule`, `category` (9 types), `priority` (4 levels), `title`, `message`, `actionUrl`, `actionType`, `metadata`, `status` (unread/read/archived/deleted), soft delete, `createdAt`, `expiresAt`, `deviceInfo`, `sessionId`
+- **Bell Dropdown** — Glassmorphism panel (`backdrop-blur-xl`, `#111118/95`) with category-based icons (Shield/ClipboardCheck/Calendar/Layers/Target/CreditCard/Info etc.), priority indicators (critical → pulsing rose dot, high → orange dot), grouped by Today/Yesterday/Earlier, unread blue dot indicator with glow, mark all read button, relative timestamps, action URL arrow icon, framer-motion staggered entry, custom thin scrollbar, skeleton loading, empty state
 - **Desktop Notifications** — Browser Notification API for background tab alerts when tab is not visible
-- **Auto-generated Events** — Welcome on signup, session started on login, bulk schedule creation
+- **Auto-generated Events** — Welcome on signup (category: info, priority: medium), session started on login (category: info, priority: low), bulk schedule creation (category: schedule)
+- **Deduplication** — Same userId+category+title within 5 minutes refreshes timestamp instead of creating duplicate, preventing "Session Started" spam
+- **Auto-cleanup** — Notifications older than 30 days auto-archive, 90+ days hard-delete
+- **Pagination** — Server-side limit/offset, unread count returned from server
 
 ### UI/UX
 - **Responsive** — Mobile-first with collapsible 260px sidebar (MAIN/MANAGEMENT/SYSTEM sections, logo area with "SSP Global" + "STI TrackSuite", active indicator line, user footer with sign out)
@@ -176,7 +180,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | **Users** | User ID, Name, Email, Role, Login/Logout, Last Active, Status |
 | **SessionLogs** | Log ID, User ID, Login/Logout, Duration, Device, Browser, IP |
 | **LoginLogs** | Log ID, User ID, Action, Timestamp |
-| **Notifications** | Notification ID, User ID, Title, Message, Type, Link, Is Read, Created At |
+| **Notifications** | notificationId, organizationId, branchId, userId, actorId, sourceModule, category, priority, title, message, actionUrl, actionType, metadata, status, isDeleted, createdAt, expiresAt, deviceInfo, sessionId |
 | **Roles** | Role Name, Permissions |
 
 ---
@@ -203,7 +207,7 @@ Browser ──► Clerk (Auth) ──► Next.js App ──► Google Apps Scrip
 - **Optimistic UI** — snapshot → mutate → rollback on failure pattern across all mutations for instant user feedback
 - **Beacon API** for reliable logout detection on tab close (Clerk v6 dropped `window.Clerk.addListener`)
 - **Middleware** (`proxy.ts`) — pure auth-only route protection; role checking is client-side because `publicMetadata` is unavailable on the middleware auth object in Clerk v6
-- **Notification polling** at 10s intervals (Google Sheets has no real-time push capability), with desktop Notification API for background tab alerts
+- **Notification polling** at 10s intervals (Google Sheets has no real-time push capability), with desktop Notification API for background tab alerts. Enterprise schema with 19 columns, deduplication (5-min window), auto-cleanup (30d archive, 90d delete), and priority/category system.
 
 ---
 
@@ -239,6 +243,24 @@ Deployed on **Vercel**. To deploy your own:
 ---
 
 ## Changelog
+
+### v1.11 — Enterprise Notification System Redesign
+- **19-column enterprise schema**: `notificationId`, `organizationId`, `branchId`, `userId`, `actorId`, `sourceModule`, `category` (9 types: security, attendance, system, schedule, batch, lead, student, payment, info), `priority` (4 levels: critical, high, medium, low), `title`, `message`, `actionUrl`, `actionType`, `metadata`, `status` (unread/read/archived/deleted), `isDeleted` (soft delete), `createdAt`, `expiresAt`, `deviceInfo`, `sessionId`
+- **Backend handlers rewritten** (`Code.gs`):
+  - **Deduplication**: same `userId`+`category`+`title` within 5 min refreshes `createdAt` instead of duplicate row
+  - **Pagination**: server-side `limit`/`offset`, response includes `{ notifications, total, unreadCount }`
+  - **Status transitions**: `unread` → `read` → `archived` → `deleted` instead of boolean `Is Read`
+  - **`handleArchiveNotifications`** (new): auto-archive notifications older than N days (default 30)
+  - **`handleCleanupNotifications`** (new): soft-delete expired (`expiresAt`), hard-delete archived+90d
+- **Frontend updates**:
+  - `AppNotification` type: 19 camelCase fields with typed enums for category, priority, status, sourceModule
+  - `useNotifications` hook: consumes new response shape, `createNotification` takes `Partial<AppNotification>`, added `archiveOld()`
+  - `navbar.tsx`: category-based icon map (Shield/ClipboardCheck/Calendar/Layers/Target/CreditCard/Info), priority indicators (critical → pulsing rose dot, high → orange dot), action URL arrow icon, category-colored icon containers
+  - `UserSync.tsx` & `schedules/page.tsx`: updated `createNotification` calls with new field names and defaults
+  - `api.ts`: added `archiveNotifications` and `cleanupNotifications` to action type union
+- **Notification constants**: `NOTIFICATION_CATEGORIES`, `NOTIFICATION_PRIORITIES`, `NOTIFICATION_STATUSES`, `NOTIFICATION_SOURCES`, `NOTIFICATION_DEDUP_WINDOW_MS`, `NOTIFICATION_FETCH_LIMIT`
+- **Setup.gs**: Notifications sheet headers updated to 19-column camelCase schema
+- **Build verified**: `npm run build` passes with no errors
 
 ### v1.10 — Global Hover & Interaction System Overhaul
 - **CSS utilities**: `card-hover` (lift + glow + border transition), `btn-glow` (hover shadow + scale + active press), `nav-item` (gradient active bg + glow border)
