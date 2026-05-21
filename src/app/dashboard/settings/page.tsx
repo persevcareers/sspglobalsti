@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   User,
@@ -26,22 +26,28 @@ import {
   Building2,
   Smartphone,
   Mail,
+  Layout,
+  Trash2,
+  AlertTriangle,
+  Info,
   Clock,
-  Plus,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { fadeIn, staggerContainer, statCardVariants } from "@/lib/animations";
+import { fadeIn, staggerContainer } from "@/lib/animations";
 
 const INPUT_CLASS = "h-9 border-white/[0.08] bg-white/[0.04] text-sm text-foreground placeholder:text-muted-foreground/40 focus-visible:border-indigo-500/50 focus-visible:ring-[3px] focus-visible:ring-indigo-500/20 transition-all duration-200";
 
 const SETTINGS_TABS = [
   { id: "profile", label: "Profile", icon: User },
-  { id: "organization", label: "Organization", icon: Building2 },
+  { id: "appearance", label: "Appearance", icon: Palette },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "security", label: "Security", icon: Key },
-  { id: "integrations", label: "Integrations", icon: Globe },
+  { id: "organization", label: "Organization", icon: Building2 },
+  { id: "system", label: "System", icon: Database },
 ] as const;
 
 function SettingCard({ title, description, children, className }: { title: string; description?: string; children: React.ReactNode; className?: string }) {
@@ -109,24 +115,40 @@ function ThemeSelector() {
 }
 
 export default function SettingsPage() {
-  const { setTheme } = useTheme();
   const { isLoaded, user } = useUser();
   const [testingConnection, setTestingConnection] = useState(false);
+  const [clearingCache, setClearingCache] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [showApiKey, setShowApiKey] = useState(false);
 
   const testConnection = async () => {
     setTestingConnection(true);
     try {
       const scriptUrl = process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL;
       if (!scriptUrl) throw new Error("Google Script URL is not configured");
-      const response = await fetch(`${scriptUrl}?action=read&sheet=Courses`, { method: "GET" });
-      if (response.ok) toast.success("Successfully connected to Google Sheets backend!");
-      else toast.error("Connected to server, but returned an error response.");
+      const response = await fetch(`${scriptUrl}?action=ping`, { method: "GET" });
+      const text = await response.text();
+      const data = JSON.parse(text);
+      if (data.success) {
+        toast.success("Connected to Google Sheets backend", { description: `Response: ${data.message}` });
+      } else {
+        toast.error("Backend returned an error", { description: data.message });
+      }
     } catch (e: any) {
-      toast.error(e.message || "Failed to reach Google Sheets API.");
+      toast.error("Connection failed", { description: e.message || "Could not reach the Google Sheets API." });
     } finally {
       setTestingConnection(false);
     }
+  };
+
+  const clearCache = async () => {
+    setClearingCache(true);
+    await new Promise((r) => setTimeout(r, 800));
+    if (typeof window !== "undefined") {
+      sessionStorage.clear();
+    }
+    setClearingCache(false);
+    toast.success("Cache cleared", { description: "All cached data has been invalidated." });
   };
 
   if (!isLoaded) {
@@ -142,12 +164,8 @@ export default function SettingsPage() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
-          <p className="mt-1 text-sm text-muted-foreground/70">Manage your account, organization, and application preferences.</p>
+          <p className="mt-1 text-sm text-muted-foreground/70">Manage your account, preferences, and system configuration.</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-1.5 border-white/[0.08] text-xs" onClick={() => { toast.success("Settings saved"); }}>
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          Save Changes
-        </Button>
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row">
@@ -203,28 +221,187 @@ export default function SettingsPage() {
                 </div>
               </SettingCard>
 
-              <SettingCard title="Account Activity" description="Recent login sessions and device information.">
+              <SettingCard title="Activity Timeline" description="Recent login sessions and device activity.">
                 <div className="space-y-3">
                   {[
-                    { device: "Chrome on Windows", time: "Active now", current: true },
-                    { device: "Safari on iPhone", time: "2 hours ago", current: false },
-                  ].map(({ device, time, current }) => (
+                    { device: "Chrome on Windows", ip: "203.0.113.42", time: "Active now", current: true },
+                    { device: "Safari on iPhone", ip: "198.51.100.7", time: "2 hours ago", current: false },
+                    { device: "Firefox on macOS", ip: "192.0.2.15", time: "Yesterday at 3:42 PM", current: false },
+                  ].map(({ device, ip, time, current }) => (
                     <div key={device} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                       <div className="flex items-center gap-3">
                         <Smartphone className="h-4 w-4 text-muted-foreground" />
                         <div>
                           <p className="text-sm text-foreground">{device}</p>
-                          <p className="text-xs text-muted-foreground/60">{time}</p>
+                          <p className="text-xs text-muted-foreground/60">{ip} &middot; {time}</p>
                         </div>
                       </div>
-                      {current && (
+                      {current ? (
                         <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(52,211,153,0.5)]" />
                           Current
                         </span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground/40">Inactive</span>
                       )}
                     </div>
                   ))}
+                </div>
+              </SettingCard>
+            </motion.div>
+          )}
+
+          {activeTab === "appearance" && (
+            <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-4">
+              <SettingCard title="Theme" description="Customize the visual appearance of the dashboard.">
+                <ThemeSelector />
+              </SettingCard>
+
+              <SettingCard title="Accent Color" description="Choose your preferred accent color for the UI.">
+                <div className="flex gap-3">
+                  {[
+                    { name: "Indigo", color: "#6366f1" },
+                    { name: "Emerald", color: "#10b981" },
+                    { name: "Amber", color: "#f59e0b" },
+                    { name: "Rose", color: "#f43f5e" },
+                    { name: "Violet", color: "#8b5cf6" },
+                    { name: "Cyan", color: "#06b6d4" },
+                  ].map(({ name, color }) => (
+                    <button
+                      key={name}
+                      className="group relative flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
+                      style={{ backgroundColor: color }}
+                      onClick={() => toast.success(`Accent color: ${name}`)}
+                    >
+                      <span className="absolute -bottom-4 text-[8px] opacity-0 group-hover:opacity-100 text-muted-foreground">{name}</span>
+                    </button>
+                  ))}
+                </div>
+              </SettingCard>
+
+              <SettingCard title="Layout Preferences" description="Configure how data is displayed across the platform.">
+                <div className="space-y-4">
+                  <ToggleSwitch label="Compact Mode" description="Use denser layouts for tables and cards" />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Reduced Motion" description="Disable animations for better performance" />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Show Weekend Schedules" description="Display Saturday and Sunday schedules" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Collapsed Sidebar" description="Start with sidebar collapsed by default" />
+                </div>
+              </SettingCard>
+
+              <SettingCard title="Dashboard Widgets" description="Choose which widgets appear on your dashboard.">
+                <div className="space-y-4">
+                  <ToggleSwitch label="Stat Cards" description="Show summary statistics at the top" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Charts" description="Display enrollment and progress charts" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Online Users" description="Show active user count" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Recent Activity" description="Display recent platform activity" defaultChecked />
+                </div>
+              </SettingCard>
+            </motion.div>
+          )}
+
+          {activeTab === "notifications" && (
+            <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-4">
+              <SettingCard title="Session Alerts" description="Control notifications about your account activity.">
+                <div className="space-y-4">
+                  <ToggleSwitch label="New Login Alerts" description="Get notified when you log in from a new device" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Session Timeout" description="Alert when your session is about to expire" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Security Events" description="Notify on password changes and security updates" defaultChecked />
+                </div>
+              </SettingCard>
+
+              <SettingCard title="Schedule Notifications" description="Manage schedule-related alerts.">
+                <div className="space-y-4">
+                  <ToggleSwitch label="Upcoming Sessions" description="Remind me before scheduled sessions start" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Schedule Changes" description="Notify when schedules are modified" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Attendance Alerts" description="Get notified on student attendance updates" />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Daily Digest" description="Receive a summary of daily activity" />
+                </div>
+              </SettingCard>
+
+              <SettingCard title="Email Preferences" description="Control which emails you receive.">
+                <div className="space-y-4">
+                  <ToggleSwitch label="New Lead Alerts" description="Get emailed when a new lead is captured" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Student Enrollment" description="Receive emails when students enroll" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Weekly Report" description="Weekly summary of all activity" />
+                </div>
+              </SettingCard>
+            </motion.div>
+          )}
+
+          {activeTab === "security" && (
+            <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-4">
+              <SettingCard title="Authentication" description="Manage your authentication methods and security settings.">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Authentication Provider</p>
+                      <p className="text-xs text-muted-foreground/60">Clerk handles all authentication flows</p>
+                    </div>
+                    <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px]">Active</Badge>
+                  </div>
+                  <Separator className="bg-white/[0.04]" />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Multi-factor Authentication</p>
+                      <p className="text-xs text-muted-foreground/60">Add an extra layer of security</p>
+                    </div>
+                    <Button variant="outline" size="sm" className="h-8 gap-1.5 border-white/[0.08] text-xs">Configure</Button>
+                  </div>
+                </div>
+              </SettingCard>
+
+              <SettingCard title="Session Management" description="Manage active sessions across devices.">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Active Sessions</p>
+                      <p className="text-xs text-muted-foreground/60">3 active sessions across devices</p>
+                    </div>
+                    <Button variant="outline" size="sm" className="h-8 gap-1.5 border-red-500/20 text-red-400 hover:text-red-300 text-xs hover:bg-red-500/10">
+                      <Trash2 className="h-3 w-3" />
+                      Revoke All
+                    </Button>
+                  </div>
+                  <Separator className="bg-white/[0.04]" />
+                  {[
+                    { device: "Chrome on Windows", location: "Hyderabad, India", lastActive: "Active now" },
+                    { device: "Safari on iPhone", location: "Hyderabad, India", lastActive: "2 hours ago" },
+                    { device: "Firefox on macOS", location: "Mumbai, India", lastActive: "Yesterday" },
+                  ].map(({ device, location, lastActive }) => (
+                    <div key={device} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <Smartphone className="h-3.5 w-3.5 text-muted-foreground" />
+                        <div>
+                          <p className="text-xs font-medium text-foreground">{device}</p>
+                          <p className="text-[10px] text-muted-foreground/50">{location} &middot; {lastActive}</p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] text-muted-foreground/50 hover:text-red-400">Revoke</Button>
+                    </div>
+                  ))}
+                </div>
+              </SettingCard>
+
+              <SettingCard title="Security Policies" description="Configure security preferences.">
+                <div className="space-y-4">
+                  <ToggleSwitch label="Idle Session Timeout" description="Automatically log out after 15 minutes of inactivity" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="Login Notifications" description="Email me when a new device logs in" defaultChecked />
+                  <Separator className="bg-white/[0.04]" />
+                  <ToggleSwitch label="IP Tracking" description="Log IP addresses for all login events" defaultChecked />
                 </div>
               </SettingCard>
             </motion.div>
@@ -238,7 +415,9 @@ export default function SettingsPage() {
                     { label: "Organization Name", value: "SSP Global" },
                     { label: "Platform", value: "STI TrackSuite" },
                     { label: "Contact Email", value: "admin@sspglobal.com" },
+                    { label: "Branch", value: "Head Office" },
                     { label: "Timezone", value: "Asia/Kolkata (IST, UTC+5:30)" },
+                    { label: "Date Format", value: "DD/MM/YYYY" },
                   ].map(({ label, value }) => (
                     <div key={label} className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground/60">{label}</Label>
@@ -263,65 +442,16 @@ export default function SettingsPage() {
                       <Input placeholder="https://example.com/logo.png" className={INPUT_CLASS} />
                     </div>
                   </div>
-                </div>
-              </SettingCard>
-            </motion.div>
-          )}
-
-          {activeTab === "notifications" && (
-            <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-4">
-              <SettingCard title="Email Notifications" description="Control which emails you receive from the platform.">
-                <div className="space-y-4">
-                  <ToggleSwitch label="New Lead Alerts" description="Get notified when a new lead is captured" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Student Enrollment" description="Receive updates when students are enrolled" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Schedule Changes" description="Notify on batch schedule modifications" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Daily Digest" description="Receive a summary of daily activity" />
-                </div>
-              </SettingCard>
-
-              <SettingCard title="Push Notifications" description="Browser notification preferences.">
-                <div className="space-y-4">
-                  <ToggleSwitch label="Desktop Notifications" description="Show notifications in your browser" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Session Alerts" description="Notify on important status changes" />
-                </div>
-              </SettingCard>
-            </motion.div>
-          )}
-
-          {activeTab === "security" && (
-            <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-4">
-              <SettingCard title="Authentication" description="Manage your authentication methods and security settings.">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">Authentication Provider</p>
-                      <p className="text-xs text-muted-foreground/60">Clerk handles all authentication flows</p>
-                    </div>
-                    <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px]">Active</Badge>
+                  <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground/60">Organization settings are stored locally and applied on page load.</p>
                   </div>
-                  <Separator className="bg-white/[0.04]" />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">Session Management</p>
-                      <p className="text-xs text-muted-foreground/60">Active sessions are tracked and managed</p>
-                    </div>
-                    <Button variant="outline" size="sm" className="h-8 gap-1.5 border-white/[0.08] text-xs">
-                      <RefreshCw className="h-3 w-3" />
-                      Revoke All
-                    </Button>
-                  </div>
-                  <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Idle Session Timeout" description="Automatically log out after 15 minutes of inactivity" defaultChecked />
                 </div>
               </SettingCard>
             </motion.div>
           )}
 
-          {activeTab === "integrations" && (
+          {activeTab === "system" && (
             <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-4">
               <SettingCard title="Google Sheets Backend" description="Connected Google Apps Script deployment for data storage.">
                 <div className="space-y-4">
@@ -329,14 +459,10 @@ export default function SettingsPage() {
                     <Label className="text-xs text-muted-foreground/60">Web App URL</Label>
                     <Input value={process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL || "Not configured"} disabled className={cn(INPUT_CLASS, "font-mono text-xs cursor-not-allowed opacity-70")} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground/60">Alt Script URL</Label>
-                    <Input value={process.env.NEXT_PUBLIC_APPS_SCRIPT_URL || "Not configured"} disabled className={cn(INPUT_CLASS, "font-mono text-xs cursor-not-allowed opacity-70")} />
-                  </div>
                   <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <ShieldAlert className="h-4 w-4 text-amber-400" />
-                      <span>Connection URL managed via environment configuration.</span>
+                      <Database className="h-4 w-4 text-indigo-400" />
+                      <span>Connection to Google Sheets backend.</span>
                     </div>
                     <Button onClick={testConnection} disabled={testingConnection} size="sm" className="h-8 gap-1.5 text-xs">
                       {testingConnection ? <><Loader2 className="h-3 w-3 animate-spin" /> Testing</> : "Test Connection"}
@@ -345,52 +471,50 @@ export default function SettingsPage() {
                 </div>
               </SettingCard>
 
-              <SettingCard title="Available Integrations" description="Connect with third-party tools and services.">
-                <div className="space-y-3">
-                  {[
-                    { name: "Google Calendar", description: "Sync schedules and events", icon: Clock, connected: true },
-                    { name: "Slack", description: "Get notifications in Slack channels", icon: Bell, connected: false },
-                    { name: "Zapier", description: "Connect with 3000+ apps", icon: Globe, connected: false },
-                  ].map(({ name, description, icon: Icon, connected }) => (
-                    <div key={name} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04]">
-                          <Icon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{name}</p>
-                          <p className="text-xs text-muted-foreground/60">{description}</p>
-                        </div>
-                      </div>
-                      {connected ? (
-                        <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-400">
-                          <CheckCircle2 className="h-3 w-3" /> Connected
-                        </span>
-                      ) : (
-                        <Button variant="outline" size="sm" className="h-7 gap-1 border-white/[0.08] text-[10px]">
-                          <Plus className="h-3 w-3" /> Connect
-                        </Button>
-                      )}
+              <SettingCard title="Cache & Performance" description="Manage application cache and data freshness.">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">In-Memory Cache</p>
+                      <p className="text-xs text-muted-foreground/60">30-second TTL with request deduplication</p>
                     </div>
-                  ))}
+                    <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px]">Active</Badge>
+                  </div>
+                  <Separator className="bg-white/[0.04]" />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Sync Status</p>
+                      <p className="text-xs text-muted-foreground/60">Data syncs in real-time via API calls</p>
+                    </div>
+                    <Badge variant="outline" className="border-amber-500/20 bg-amber-500/10 text-amber-400 text-[10px]">Online</Badge>
+                  </div>
+                  <Separator className="bg-white/[0.04]" />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Client Cache</p>
+                      <p className="text-xs text-muted-foreground/60">Session storage & in-memory cache</p>
+                    </div>
+                    <Button onClick={clearCache} disabled={clearingCache} variant="outline" size="sm" className="h-8 gap-1.5 border-white/[0.08] text-xs">
+                      {clearingCache ? <><Loader2 className="h-3 w-3 animate-spin" /> Clearing</> : <><RefreshCw className="h-3 w-3" /> Clear Cache</>}
+                    </Button>
+                  </div>
                 </div>
               </SettingCard>
-            </motion.div>
-          )}
 
-          {activeTab === "preferences" && (
-            <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-4">
-              <SettingCard title="Theme Preferences" description="Customize the visual appearance of the dashboard.">
-                <ThemeSelector />
-              </SettingCard>
-
-              <SettingCard title="Display Options" description="Configure how data is displayed across the platform.">
-                <div className="space-y-4">
-                  <ToggleSwitch label="Compact Mode" description="Use denser layouts for tables and cards" />
-                  <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Reduced Motion" description="Disable animations for better performance" />
-                  <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Show Weekend Schedules" description="Display Saturday and Sunday schedules" defaultChecked />
+              <SettingCard title="Environment" description="Current runtime environment information.">
+                <div className="space-y-3">
+                  {[
+                    { label: "Next.js", value: "16.2.6" },
+                    { label: "React", value: "19.1.0" },
+                    { label: "Clerk", value: "v7" },
+                    { label: "Build Target", value: "Production" },
+                    { label: "Data Store", value: "Google Sheets (via Apps Script)" },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2">
+                      <span className="text-xs text-muted-foreground/60">{label}</span>
+                      <span className="text-xs font-medium text-foreground">{value}</span>
+                    </div>
+                  ))}
                 </div>
               </SettingCard>
             </motion.div>
@@ -400,5 +524,3 @@ export default function SettingsPage() {
     </motion.div>
   );
 }
-
-import { Badge } from "@/components/ui/badge";

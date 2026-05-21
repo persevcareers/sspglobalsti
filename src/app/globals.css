@@ -174,3 +174,179 @@
     box-shadow: 0 0 20px -8px rgba(99, 102, 241, 0.2);
   }
 }
+
+/* ─── FullCalendar Premium Dark Theme ─────────────────────────── */
+.calendar-premium {
+  --fc-border-color: rgba(255, 255, 255, 0.06);
+  --fc-button-text-color: #e2e8f0;
+  --fc-button-bg-color: transparent;
+  --fc-button-border-color: rgba(255, 255, 255, 0.08);
+  --fc-button-hover-bg-color: rgba(255, 255, 255, 0.06);
+  --fc-button-hover-border-color: rgba(255, 255, 255, 0.12);
+  --fc-button-active-bg-color: rgba(99, 102, 241, 0.12);
+  --fc-button-active-border-color: rgba(99, 102, 241, 0.3);
+  --fc-today-bg-color: rgba(99, 102, 241, 0.06);
+  --fc-neutral-bg-color: transparent;
+  --fc-neutral-text-color: rgba(255, 255, 255, 0.4);
+  --fc-page-bg-color: transparent;
+  --fc-event-bg-color: #6366f1;
+  --fc-event-border-color: #6366f1;
+  --fc-event-text-color: #fff;
+  --fc-event-selected-overlay-color: rgba(0, 0, 0, 0.3);
+  --fc-more-link-bg-color: rgba(255, 255, 255, 0.04);
+  --fc-more-link-text-color: rgba(255, 255, 255, 0.6);
+  --fc-non-business-color: rgba(255, 255, 255, 0.02);
+  --fc-bg-event-color: rgba(99, 102, 241, 0.08);
+  --fc-highlight-color: rgba(99, 102, 241, 0.08);
+}
+
+.calendar-premium .fc {
+  font-size: 13px;
+}
+
+.calendar-premium .fc-theme-standard td,
+.calendar-premium .fc-theme-standard th {
+  border-color: var(--fc-border-color);
+}
+
+.calendar-premium .fc-theme-standard .fc-scrollgrid {
+  border-color: var(--fc-border-color);
+}
+
+.calendar-premium .fc-col-header-cell {
+  padding: 8px 0;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.calendar-premium .fc-col-header-cell-cushion {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0;
+}
+
+.calendar-premium .fc-daygrid-day-number {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 6px 8px;
+}
+
+.calendar-premium .fc-day-today .fc-daygrid-day-number {
+  color: #818cf8;
+  font-weight: 700;
+}
+
+.calendar-premium .fc-daygrid-day-frame {
+  min-height: 100px;
+}
+
+.calendar-premium .fc-daygrid-day-events {
+  min-height: 60px;
+}
+
+.calendar-premium .fc-event {
+  border-radius: 6px;
+  border: none !important;
+  padding: 1px 0;
+  font-size: 11px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.calendar-premium .fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  z-index: 5;
+}
+
+.calendar-premium .fc-timegrid-event {
+  border-radius: 6px;
+  min-height: 24px;
+}
+
+.calendar-premium .fc-timegrid-slot {
+  height: 32px;
+}
+
+.calendar-premium .fc-timegrid-slot-lane {
+  background: transparent;
+}
+
+.calendar-premium .fc-timegrid-slot-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  vertical-align: middle;
+}
+
+.calendar-premium .fc-timegrid-axis {
+  border-color: var(--fc-border-color);
+}
+
+.calendar-premium .fc-timegrid-now-indicator-line {
+  border-color: #10b981;
+  border-width: 2px;
+}
+
+.calendar-premium .fc-timegrid-now-indicator-arrow {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.calendar-premium .fc-more-link {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.calendar-premium .fc-list {
+  border: none !important;
+}
+
+.calendar-premium .fc-list-day-cushion {
+  background: rgba(255, 255, 255, 0.02) !important;
+  padding: 10px 14px;
+}
+
+.calendar-premium .fc-list-day-text,
+.calendar-premium .fc-list-day-side-text {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.calendar-premium .fc-list-table td {
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+.calendar-premium .fc-list-event:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.calendar-premium .fc-list-event-dot {
+  border-color: inherit;
+}
+
+.calendar-premium .fc-popover {
+  background: #111118;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.calendar-premium .fc-popover-header {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.calendar-premium .fc-popover-body {
+  padding: 4px;
+}
+
+.calendar-premium .fc-daygrid-more-link {
+  color: rgba(255, 255, 255, 0.5) !important;
+}

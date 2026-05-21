@@ -27,6 +27,7 @@ import {
   ChevronRight,
   LogOut,
   FileText,
+  Calendar,
 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
 
@@ -45,6 +46,7 @@ const navSections = [
   {
     label: "MANAGEMENT",
     items: [
+      { href: "/dashboard/calendar", label: "Calendar", icon: Calendar },
       { href: "/dashboard/leads", label: "Leads", icon: Target },
       { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
     ],
