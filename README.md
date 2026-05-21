@@ -27,7 +27,7 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 ### Core Modules
 - **Dashboard** — Stats overview, online users widget, real-time activity feed
 - **Students** — Full CRUD with search and progress tracking
-- **Courses** — Course catalog with active/inactive status
+- **Courses** — Premium course management with stat cards, module chip system (auto-categorized by DevOps/Cloud/Programming/AI-ML etc.), color-coded category icons, overflow handling, hover tooltips, course detail drawer with learning path visualization and module accordion
 - **Batches** — Batch management linked to courses and trainers with status badges, progress bars, filter bar
 - **Trainers** — Trainer profiles with specialization
 - **Schedules** — Daily schedule tracker (IST timezone), bulk creation, status workflow (Scheduled → Running → Completed / Cancelled / Holiday / Postponed / PAP)
@@ -239,6 +239,18 @@ Deployed on **Vercel**. To deploy your own:
 ---
 
 ## Changelog
+
+### v1.7 — Courses Page Premium Redesign
+- **Stat cards** — Total Courses, Active, Inactive, Total Modules with animated entry
+- **Module chip system** — auto-categorization by keywords (DevOps→blue/Container, Cloud→purple/Cloud, Programming→orange/Code, AI/ML→pink/Brain, Security→red/Shield, Database→cyan/Database, Monitoring→green/Monitor)
+- **Overflow handling** — first 5 chips visible, "+N more" badge with tooltip listing remaining modules
+- **Hover tooltips** — module name + category on every chip with smooth scale effect
+- **Course detail drawer** — slide-over sheet with learning path (connected pill flow), module accordion grouped by category, metadata grid (Duration, Modules, Status, Course ID), Edit/Delete actions
+- **Hybrid layout** — rich table on desktop with action dropdown (Edit, View Details, Duplicate, Delete), stacked cards on mobile
+- **Search + status filter** — instant filtering by name/modules/duration with All/Active/Inactive toggle chips
+- **Empty/error states** — contextual empty state with CTA button, error state with retry
+- **Framer Motion** — stat card stagger, row entrance, drawer transitions, chip hover effects
+- **Accessibility** — keyboard navigation (`tabIndex`, Enter/Space handlers), ARIA labels on interactive rows
 
 ### v1.6 — Notification Dropdown Redesign
 - **Glassmorphism panel** — backdrop-blur-xl, `#111118/95` background, subtle white/6% border, shadow-2xl
