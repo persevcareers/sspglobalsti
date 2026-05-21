@@ -240,7 +240,35 @@ Deployed on **Vercel**. To deploy your own:
 
 ## Changelog
 
-### v1.7 — Courses Page Premium Redesign
+### v1.10 — Global Hover & Interaction System Overhaul
+- **CSS utilities**: `card-hover` (lift + glow + border transition), `btn-glow` (hover shadow + scale + active press), `nav-item` (gradient active bg + glow border)
+- **Vibrant chart colors**: blue/emerald/amber/purple/cyan replacing desaturated grays in dark theme
+- **Chart tooltips**: glassmorphism (`bg-[#151520]/95`, `backdrop-blur-xl`, indigo glow border), per-bar `COLORS` arrays for all chart types
+- **Chart polish**: custom cursor lines, active dots with stroke, rounded bars, dark-optimized axis labels (`rgba(255,255,255,0.3)`)
+- **Sidebar interaction**: `nav-item` hover/active CSS with gradient, glow indicator shadow, icon scale `110%` on hover
+- **Surface elevation**: chart containers with `shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]` + hover `shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)]`
+- **All 4 chart components rewritten**: AreaChart, BarChart, PieChart, ProgressChart — custom tooltips, vibrant colors, better grid/axis contrast
+
+### v1.9 — Schedules Premium Operational Redesign
+- **Dual view mode**: Table (condensed 5 columns) + Timeline (grouped by Today/Tomorrow/Upcoming/Past)
+- **Smart date formatting**: `"Today • 05:30 PM"`, `"Tomorrow • 09:00 AM"`, `"21 May 2026, Wednesday"` — parsed from stored `"DD - Day - Month - YYYY"` format
+- **Live session indicators**: pulsing green dot + `"Live"` badge on running sessions, `shadow-[0_0_20px_-6px_rgba(52,211,153,0.2)]` glow on running cards
+- **Gradient stat cards**: Total Sessions, Live Now, Completed, Exceptions — with trend indicators + live icon glow
+- **View mode toggle**: segmented control (Table / Timeline) in header
+- **Status badges**: per-status icon + dot + glow shadow for Running, animated ping animation
+- **Timeline cards**: batch avatar, task ID pill, smart date, time range, duration, notes preview
+- **Condensed table columns**: Session (batch + task ID + Live badge), Date & Time (smart label + full date), Status, Duration (chip with icon), Actions
+- **Mobile cards**: responsive stacked layout with live indicator + status badge
+- **Eliminated horizontal overflow**: removed excessive columns (Task ID, Notes, Updated kept in drawer)
+- **Detail drawer**: overview grid (Date, Start/End Time, Duration), timeline section (Created, Modified, Status Change, Updated), session notes, Edit/Delete actions
+
+### v1.8 — Enterprise UI Polish & Settings Redesign
+- **Settings page complete redesign**: sidebar tab navigation (Profile/Organization/Notifications/Security/Integrations), setting cards, toggle switches, theme picker (Light/Dark/System), account activity list, connection test, integrations panel
+- **Schedules overflow fix**: condensed 9 columns → 5 (Batch, Schedule, Status, Duration, Actions)
+- **Gradient stat cards**: `bg-gradient-to-br` overlays with per-card colors, `hover:scale-[1.02]`, trend indicators (`ArrowUpRight` + percentages)
+- **PageHeader standardization**: title + subtitle left, action/metadata right across all pages
+- **Dashboard**: gradient cards, trend indicators, "Last updated" timestamp, improved chart containers
+- **Analytics**: gradient cards, trend indicators, chart containers with border wrapping + elevation
 - **Stat cards** — Total Courses, Active, Inactive, Total Modules with animated entry
 - **Module chip system** — auto-categorization by keywords (DevOps→blue/Container, Cloud→purple/Cloud, Programming→orange/Code, AI/ML→pink/Brain, Security→red/Shield, Database→cyan/Database, Monitoring→green/Monitor)
 - **Overflow handling** — first 5 chips visible, "+N more" badge with tooltip listing remaining modules
