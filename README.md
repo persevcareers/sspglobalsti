@@ -26,11 +26,12 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 
 ### Core Modules
 - **Dashboard** — Stats overview, online users widget, real-time activity feed
+- **Calendar** — Enterprise FullCalendar integration with Month/Week/Day/Agenda views, drag-and-drop rescheduling, batch color coding, trainer filtering, live session indicators, event detail drawer, premium dark theme
 - **Students** — Full CRUD with search and progress tracking
 - **Courses** — Premium course management with stat cards, module chip system (auto-categorized by DevOps/Cloud/Programming/AI-ML etc.), color-coded category icons, overflow handling, hover tooltips, course detail drawer with learning path visualization and module accordion
 - **Batches** — Batch management linked to courses and trainers with status badges, progress bars, filter bar
 - **Trainers** — Trainer profiles with specialization
-- **Schedules** — Daily schedule tracker (IST timezone), bulk creation, status workflow (Scheduled → Running → Completed / Cancelled / Holiday / Postponed / PAP)
+- **Schedules** — Daily schedule tracker (IST timezone), bulk creation, status workflow (Scheduled → Running → Completed / Cancelled / Holiday / Postponed / PAP), dual view mode (Table + Timeline)
 - **Leads** — Lead management with source tracking and follow-up dates
 - **Analytics** — Charts for lead sources, student status distribution, enrollment trends, batch progress
 
@@ -243,6 +244,25 @@ Deployed on **Vercel**. To deploy your own:
 ---
 
 ## Changelog
+
+### v1.12 — Enterprise Calendar System & Settings Redesign
+- **Settings page restructured** — Removed Integrations tab (Google Calendar/Slack/Zapier), replaced with 6 clean tabs: Profile, Appearance, Notifications, Security, Organization, System
+- **Appearance tab**: Theme picker (Light/Dark/System), accent color selectors (6 colors), layout density toggles (Compact Mode, Reduced Motion, Weekend Schedules, Collapsed Sidebar), dashboard widget customization (Stat Cards, Charts, Online Users, Recent Activity)
+- **System tab**: Google Sheets connection test (with proper `ping` endpoint), cache management (session storage clear button), environment info (Next.js/React/Clerk versions, build target, data store), backend URL display
+- **FullCalendar integration** — `@fullcalendar/react`, `@fullcalendar/daygrid`, `@fullcalendar/timegrid`, `@fullcalendar/interaction`, `@fullcalendar/list`
+- **4 calendar views**: Month (`dayGridMonth`), Week (`timeGridWeek`), Day (`timeGridDay`), Agenda (`listWeek`) with tab-style view switcher
+- **Data mapping**: Events pulled from `DailySchedules` sheet, dates parsed from `"DD - Day - Month - YYYY"` format via `parseToISTDateObject`, times in IST timezone
+- **Batch color coding**: 12-color palette assigned by batch name, consistent across all views
+- **Drag-and-drop scheduling**: Drop event to new time slot → auto-updates `Schedule Date` / `Start Time` / `End Time` via `modifySheetData`, toast feedback, revert on failure
+- **Resizable events**: Drag bottom edge to change duration → updates `End Time` and recalculates duration
+- **Live session indicators**: Pulsing green dot + "LIVE" badge on running sessions, `nowIndicator` renders current time line in time views
+- **Event detail drawer**: Slide-over panel with status badge (colored), live indicator, overview grid (Date, Start/End Time, Duration), Notes section, update history (Last Updated, Created, Last Status Change)
+- **Filter system**: Batch name dropdown filter + text search across batch names and notes
+- **Navigation toolbar**: Previous/Next/Today buttons, view switcher (Month/Week/Day/Agenda), search input, batch filter
+- **Status legend**: Bottom bar with all 7 status colors (Scheduled/Running/Completed/Cancelled/Holiday/Postponed/PAP) + batch name dots
+- **Premium dark theme**: FullCalendar CSS overrides for dark glassmorphism surfaces (`#111118` cards, `rgba(255,255,255,0.06)` borders, indigo accent highlights), custom event hover (lift + glow), time slot styling, list view dark mode, popover dark mode
+- **Sidebar updated**: New Calendar route in MANAGEMENT section between Schedules and Leads
+- **Build verified**: `npm run build` passes with 14 routes including `/dashboard/calendar`
 
 ### v1.11 — Enterprise Notification System Redesign
 - **19-column enterprise schema**: `notificationId`, `organizationId`, `branchId`, `userId`, `actorId`, `sourceModule`, `category` (9 types: security, attendance, system, schedule, batch, lead, student, payment, info), `priority` (4 levels: critical, high, medium, low), `title`, `message`, `actionUrl`, `actionType`, `metadata`, `status` (unread/read/archived/deleted), `isDeleted` (soft delete), `createdAt`, `expiresAt`, `deviceInfo`, `sessionId`
