@@ -23,20 +23,22 @@ export default function DashboardLayout({
     <div className="flex min-h-screen">
       <UserSync />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 p-4 md:p-6">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              variants={pageTransition}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+        <main className="flex-1">
+          <div className="mx-auto w-full max-w-[1600px] px-4 py-6 md:px-6 lg:px-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                variants={pageTransition}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </main>
       </div>
     </div>

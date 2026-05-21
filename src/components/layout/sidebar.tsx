@@ -25,33 +25,37 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  LogOut,
+  FileText,
 } from "lucide-react";
+import { useUser, useClerk } from "@clerk/nextjs";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/students", label: "Students", icon: Users },
-  { href: "/dashboard/courses", label: "Courses", icon: BookOpen },
-  { href: "/dashboard/batches", label: "Batches", icon: GraduationCap },
-  { href: "/dashboard/trainers", label: "Trainers", icon: UserSquare2 },
-  { href: "/dashboard/schedules", label: "Schedules", icon: CalendarRange },
-  { href: "/dashboard/leads", label: "Leads", icon: Target },
-  { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+const navSections = [
+  {
+    label: "MAIN",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/dashboard/students", label: "Students", icon: Users },
+      { href: "/dashboard/courses", label: "Courses", icon: BookOpen },
+      { href: "/dashboard/trainers", label: "Trainers", icon: UserSquare2 },
+      { href: "/dashboard/batches", label: "Batches", icon: GraduationCap },
+      { href: "/dashboard/schedules", label: "Schedules", icon: CalendarRange },
+    ],
+  },
+  {
+    label: "MANAGEMENT",
+    items: [
+      { href: "/dashboard/leads", label: "Leads", icon: Target },
+      { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
+    ],
+  },
+  {
+    label: "SYSTEM",
+    items: [
+      { href: "/dashboard/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
-
-const sidebarVariants = {
-  expanded: { width: 288 },
-  collapsed: { width: 64 },
-};
-
-const navItemVariants = {
-  hidden: { opacity: 0, x: -16 },
-  visible: (i: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.3, delay: i * 0.04 },
-  }),
-};
 
 interface SidebarProps {
   open: boolean;
@@ -60,6 +64,8 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("sidebar-collapsed") === "true";
@@ -69,9 +75,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     localStorage.setItem("sidebar-collapsed", String(collapsed));
   }, [collapsed]);
 
+  const isActive = (href: string) => {
+    if (href === "/dashboard") return pathname === href;
+    return pathname.startsWith(href);
+  };
+
   return (
     <>
-      {/* Mobile overlay */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -79,122 +89,168 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
             onClick={onClose}
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <motion.aside
         initial={false}
-        animate={collapsed ? "collapsed" : "expanded"}
-        variants={sidebarVariants}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        animate={{ width: collapsed ? 64 : 260 }}
+        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-screen flex-col border-r bg-card backdrop-blur-xl",
+          "fixed left-0 top-0 z-50 flex h-screen flex-col border-r bg-card",
           "md:relative md:z-0",
-          collapsed ? "w-16" : "w-72",
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className={cn("flex h-16 items-center border-b px-4", collapsed && "justify-center px-2")}>
+        <div className={cn("flex h-16 items-center border-b px-4", collapsed && "justify-center")}>
           <AnimatePresence mode="wait">
             {!collapsed ? (
-              <motion.span
-                key="logo-text"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-                className="text-lg font-bold tracking-tight whitespace-nowrap"
+              <motion.div
+                key="logo-full"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-3"
               >
-                STI TrackSuite
-              </motion.span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white shadow-sm">
+                  S
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold leading-tight">SSP Global</span>
+                  <span className="text-[10px] leading-tight text-muted-foreground">STI TrackSuite</span>
+                </div>
+              </motion.div>
             ) : (
-              <motion.span
+              <motion.div
                 key="logo-icon"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.2 }}
-                className="text-lg font-bold"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white shadow-sm"
               >
                 S
-              </motion.span>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <ScrollArea className="flex-1 py-2">
-          <nav className="flex flex-col gap-1 px-2">
-            {navItems.map((item, i) => {
-              const isActive = pathname === item.href;
-              return (
-                <motion.div
-                  key={item.href}
-                  custom={i}
-                  variants={navItemVariants}
-                  initial="hidden"
-                  animate="visible"
-                >
-                  <TooltipProvider delayDuration={collapsed ? 100 : 1000}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Link href={item.href} onClick={onClose}>
-                          <Button
-                            variant="ghost"
-                            className={cn(
-                              "w-full justify-start gap-3 transition-all duration-200",
-                              collapsed ? "px-3" : "px-3",
-                              isActive
-                                ? "bg-accent text-accent-foreground font-medium"
-                                : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                            )}
-                          >
-                            <item.icon className="h-4 w-4 shrink-0" />
-                            <AnimatePresence mode="wait">
-                              {!collapsed && (
-                                <motion.span
-                                  initial={{ opacity: 0, width: 0 }}
-                                  animate={{ opacity: 1, width: "auto" }}
-                                  exit={{ opacity: 0, width: 0 }}
-                                  transition={{ duration: 0.2 }}
-                                  className="overflow-hidden whitespace-nowrap"
-                                >
-                                  {item.label}
-                                </motion.span>
+        <ScrollArea className="flex-1 py-3">
+          {navSections.map((section) => (
+            <div key={section.label} className="mb-4">
+              <AnimatePresence mode="wait">
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="block px-5 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60"
+                  >
+                    {section.label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <nav className="flex flex-col gap-0.5 px-2">
+                {section.items.map((item) => {
+                  const active = isActive(item.href);
+                  return (
+                    <TooltipProvider key={item.href} delayDuration={collapsed ? 100 : 1000}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link href={item.href} onClick={onClose}>
+                            <div
+                              className={cn(
+                                "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
+                                collapsed && "justify-center px-2",
+                                active
+                                  ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                               )}
-                            </AnimatePresence>
-                          </Button>
-                        </Link>
-                      </TooltipTrigger>
-                      {collapsed && (
-                        <TooltipContent side="right" sideOffset={10}>
-                          {item.label}
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </TooltipProvider>
-                </motion.div>
-              );
-            })}
-          </nav>
+                            >
+                              {active && (
+                                <motion.div
+                                  layoutId="active-indicator"
+                                  className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-indigo-500"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
+                              )}
+                              <item.icon className="h-4 w-4 shrink-0" />
+                              <AnimatePresence mode="wait">
+                                {!collapsed && (
+                                  <motion.span
+                                    initial={{ opacity: 0, width: 0 }}
+                                    animate={{ opacity: 1, width: "auto" }}
+                                    exit={{ opacity: 0, width: 0 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="overflow-hidden whitespace-nowrap"
+                                  >
+                                    {item.label}
+                                  </motion.span>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          </Link>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right" sideOffset={10}>
+                            {item.label}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                })}
+              </nav>
+            </div>
+          ))}
         </ScrollArea>
 
-        <div className={cn("border-t p-2", collapsed && "flex justify-center")}>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden md:flex h-8 w-full justify-center"
-          >
-            {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
+        <div className="border-t p-2">
+          <AnimatePresence>
+            {!collapsed && user && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-2 rounded-lg bg-accent/30 px-3 py-2"
+              >
+                <p className="truncate text-xs font-medium">{user.fullName || "User"}</p>
+                <p className="truncate text-[10px] text-muted-foreground">{user.primaryEmailAddress?.emailAddress}</p>
+              </motion.div>
             )}
-          </Button>
+          </AnimatePresence>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => signOut()}
+              className={cn("h-8 justify-start text-muted-foreground hover:text-foreground", collapsed ? "w-full px-0 justify-center" : "flex-1")}
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <AnimatePresence mode="wait">
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "auto" }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="ml-2 overflow-hidden whitespace-nowrap text-xs"
+                  >
+                    Sign Out
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden h-8 w-8 shrink-0 md:flex"
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </motion.aside>
     </>
