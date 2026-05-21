@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import type { DailySchedule } from "@/types";
 import {
@@ -17,20 +17,30 @@ import {
   Pencil,
   Trash2,
   ExternalLink,
-  History,
   Play,
-  Square,
   Ban,
   Sun,
-  CalendarClock,
   BookOpen,
+  Timer,
+  RotateCcw,
+  ArrowUpRight,
+  Zap,
+  User,
+  Hash,
+  ChevronRight,
   FileText,
+  Repeat,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import {
   Sheet,
   SheetContent,
@@ -71,31 +81,83 @@ import { cn } from "@/lib/utils";
 import { fadeIn, staggerContainer, statCardVariants, tableRowVariants } from "@/lib/animations";
 
 const INPUT_CLASS = "h-9 border-white/[0.08] bg-white/[0.04] text-sm text-foreground placeholder:text-muted-foreground/40 focus-visible:border-indigo-500/50 focus-visible:ring-[3px] focus-visible:ring-indigo-500/20 transition-all duration-200";
-
-const STATUS_STYLES: Record<string, string> = {
-  Scheduled: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-  Running: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-semibold",
-  Completed: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-  Cancelled: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-  Holiday: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  Postponed: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  PAP: "bg-blue-500/10 text-blue-400 border-blue-500/20 font-semibold",
-};
-
 const STATUSES = ["Scheduled", "Running", "Completed", "Cancelled", "Holiday", "Postponed", "PAP"] as const;
 
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium", STATUS_STYLES[status] || "bg-muted text-muted-foreground")}>
-      {status}
-    </span>
-  );
+const GRADIENT_CARDS = [
+  { from: "from-blue-500/10", via: "via-indigo-500/5", border: "hover:border-blue-500/20" },
+  { from: "from-emerald-500/10", via: "via-teal-500/5", border: "hover:border-emerald-500/20" },
+  { from: "from-teal-500/10", via: "via-cyan-500/5", border: "hover:border-teal-500/20" },
+  { from: "from-rose-500/10", via: "via-orange-500/5", border: "hover:border-rose-500/20" },
+];
+
+const STATUS_STYLES: Record<string, { bg: string; dot: string; icon: React.ElementType }> = {
+  Scheduled: { bg: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20", dot: "bg-indigo-500", icon: Calendar },
+  Running: { bg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", dot: "bg-emerald-500", icon: Activity },
+  Completed: { bg: "bg-teal-500/10 text-teal-400 border-teal-500/20", dot: "bg-teal-500", icon: CheckCircle2 },
+  Cancelled: { bg: "bg-rose-500/10 text-rose-400 border-rose-500/20", dot: "bg-rose-500", icon: Ban },
+  Holiday: { bg: "bg-amber-500/10 text-amber-400 border-amber-500/20", dot: "bg-amber-500", icon: Sun },
+  Postponed: { bg: "bg-orange-500/10 text-orange-400 border-orange-500/20", dot: "bg-orange-500", icon: RotateCcw },
+  PAP: { bg: "bg-blue-500/10 text-blue-400 border-blue-500/20", dot: "bg-blue-500", icon: Clock },
+};
+
+function getStatusStyle(status: string) {
+  return STATUS_STYLES[status] || STATUS_STYLES.Scheduled;
 }
 
 function generateUniqueId() {
   return "TSK-" + Math.random().toString(36).substring(2, 9).toUpperCase();
 }
 
+// Parse "DD - Day - Month Name - YYYY" into clean display
+function parseScheduledDate(dateStr: string): { day: string; monthYear: string; weekday: string } | null {
+  if (!dateStr || !dateStr.includes(" - ")) return null;
+  const parts = dateStr.split(" - ").map((s) => s.trim());
+  if (parts.length < 4) return null;
+  return {
+    day: parts[0],
+    weekday: parts[1],
+    monthYear: `${parts[2]} ${parts[3]}`,
+  };
+}
+
+function formatSmartDate(dateStr: string, timeStr: string): { label: string; full: string; isToday: boolean; isTomorrow: boolean } {
+  const parsed = parseScheduledDate(dateStr);
+  if (!parsed) return { label: dateStr, full: dateStr, isToday: false, isTomorrow: false };
+
+  const now = new Date();
+  const todayStr = now.toLocaleDateString("en-US", { day: "2-digit", weekday: "long", month: "long", year: "numeric" });
+  const todayFormatted = `${now.getDate().toString().padStart(2, "0")} - ${now.toLocaleDateString("en-US", { weekday: "long" })} - ${now.toLocaleDateString("en-US", { month: "long" })} - ${now.getFullYear()}`;
+
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowFormatted = `${tomorrow.getDate().toString().padStart(2, "0")} - ${tomorrow.toLocaleDateString("en-US", { weekday: "long" })} - ${tomorrow.toLocaleDateString("en-US", { month: "long" })} - ${tomorrow.getFullYear()}`;
+
+  const displayTime = timeStr || "";
+  const isToday = dateStr === todayFormatted;
+  const isTomorrow = dateStr === tomorrowFormatted;
+
+  let label: string;
+  if (isToday) {
+    label = `Today • ${displayTime}`;
+  } else if (isTomorrow) {
+    label = `Tomorrow • ${displayTime}`;
+  } else {
+    label = `${parsed.day} ${parsed.monthYear}`;
+  }
+
+  return { label, full: `${parsed.day} ${parsed.monthYear}, ${parsed.weekday}`, isToday, isTomorrow };
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+// ─── BULK SCHEDULE FORM ───────────────────────────────────────
 function BulkScheduleForm({
   onSave,
   isSubmitting,
@@ -137,11 +199,36 @@ function BulkScheduleForm({
         <Label htmlFor="bulk-notes">Notes</Label>
         <Textarea id="bulk-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional instructions..." rows={2} />
       </div>
-      <Button type="submit" className="w-full" disabled={isSubmitting}>{isSubmitting ? "Creating..." : "Create Bulk Schedules"}</Button>
+      <Button type="submit" className="w-full gap-1.5" disabled={isSubmitting}>
+        {isSubmitting ? "Creating..." : <><Layers className="h-4 w-4" /> Create Bulk Schedules</>}
+      </Button>
     </form>
   );
 }
 
+// ─── PREMIUM STAT BADGE ──────────────────────────────────────
+function StatusBadge({ status }: { status: string }) {
+  const style = getStatusStyle(status);
+  const isRunning = status === "Running";
+  return (
+    <span className={cn(
+      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-all",
+      style.bg,
+      isRunning && "shadow-[0_0_12px_-2px_rgba(52,211,153,0.3)]"
+    )}>
+      {isRunning && (
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        </span>
+      )}
+      {!isRunning && <span className={cn("h-1.5 w-1.5 rounded-full", style.dot)} />}
+      {status}
+    </span>
+  );
+}
+
+// ─── DETAIL DRAWER ───────────────────────────────────────────
 function ScheduleDetailDrawer({
   schedule,
   open,
@@ -156,62 +243,96 @@ function ScheduleDetailDrawer({
   onDelete: (s: DailySchedule) => void;
 }) {
   if (!schedule) return null;
+  const parsed = parseScheduledDate(schedule["Schedule Date"]);
+  const dateDisplay = parsed ? `${parsed.day} ${parsed.monthYear}, ${parsed.weekday}` : schedule["Schedule Date"];
+  const style = getStatusStyle(schedule.Status);
+  const Icon = style.icon;
+
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
       <SheetContent className="w-full border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-lg">
         <SheetHeader className="pb-0">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]"><Calendar className="h-6 w-6 text-muted-foreground" /></div>
-            <div>
+          <div className="flex items-start gap-4">
+            <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border", style.bg.replace("text-", "").replace("border-", ""))}>
+              <Icon className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 flex-1">
               <SheetTitle className="text-xl">{schedule["Batch Name"]}</SheetTitle>
-              <div className="mt-1 flex items-center gap-2">
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
                 <StatusBadge status={schedule.Status} />
-                <span className="text-xs text-muted-foreground">ID: {schedule["Task ID"]}</span>
+                <span className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground/50">
+                  <Hash className="h-3 w-3" />
+                  {schedule["Task ID"]}
+                </span>
               </div>
             </div>
           </div>
-          <SheetDescription className="mt-3 text-sm text-muted-foreground/70">{schedule.Notes || "No notes"}</SheetDescription>
+          <SheetDescription className="mt-3 text-sm text-muted-foreground/70 line-clamp-2">{schedule.Notes || "No notes available."}</SheetDescription>
         </SheetHeader>
         <Separator className="my-4 bg-white/[0.06]" />
-        <div className="space-y-4 px-4 pb-8">
+
+        <div className="space-y-5 px-4 pb-8 overflow-y-auto scrollbar-thin">
+          {/* Overview grid */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { icon: Calendar, label: "Date", value: schedule["Schedule Date"] },
-              { icon: Clock, label: "Start Time", value: schedule["Start Time"] },
+              { icon: Calendar, label: "Date", value: dateDisplay },
+              { icon: Clock, label: "Start Time", value: schedule["Start Time"] || "—" },
               { icon: Clock, label: "End Time", value: schedule["End Time"] || "—" },
-              { icon: BookOpen, label: "Duration", value: schedule["Duration"] || "—" },
+              { icon: Timer, label: "Duration", value: schedule["Duration"] || "—" },
             ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
-                <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/50"><Icon className="h-3 w-3" />{label}</div>
+              <div key={label} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                  <Icon className="h-3 w-3" />
+                  {label}
+                </div>
                 <p className="mt-1 text-sm font-medium text-foreground">{value}</p>
               </div>
             ))}
           </div>
+
+          {/* Timeline */}
           <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">Notes</h4>
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
-              <p className="text-sm text-muted-foreground">{schedule.Notes || "No notes"}</p>
-            </div>
-          </div>
-          <div>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">Timeline</h4>
-            <div className="space-y-2">
+            <h4 className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">
+              <Activity className="h-3 w-3" />
+              Timeline
+            </h4>
+            <div className="space-y-1">
               {[
                 { label: "Created", value: schedule["Created Time (IST)"] },
                 { label: "Last Modified", value: schedule["Modified Time (IST)"] },
                 { label: "Status Change", value: schedule["Last Status Change Time (IST)"] },
                 { label: "Last Updated", value: schedule["Last Updated Timestamp (IST)"] },
-              ].filter((t) => t.value).map(({ label, value }) => (
-                <div key={label} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+              ].filter((t) => t.value).map(({ label, value }, i) => (
+                <div key={label} className={cn(
+                  "relative flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] px-3.5 py-2.5",
+                  i > 0 && "border-t-0 rounded-t-none"
+                )}>
                   <span className="text-xs text-muted-foreground/60">{label}</span>
-                  <span className="text-xs text-muted-foreground">{value}</span>
+                  <span className="text-xs text-muted-foreground font-mono">{value}</span>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Notes */}
+          <div>
+            <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">
+              <FileText className="h-3 w-3" />
+              Session Notes
+            </h4>
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{schedule.Notes || "No notes for this session."}</p>
+            </div>
+          </div>
+
+          {/* Actions */}
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => { onEdit(schedule); onClose(); }}><Pencil className="h-3.5 w-3.5" /> Edit</Button>
-            <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-red-400 hover:text-red-300" onClick={() => { onDelete(schedule); onClose(); }}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>
+            <Button variant="outline" size="sm" className="flex-1 gap-1.5 border-white/[0.08]" onClick={() => { onEdit(schedule); onClose(); }}>
+              <Pencil className="h-3.5 w-3.5" /> Edit
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1 gap-1.5 border-white/[0.08] text-rose-400 hover:text-rose-300" onClick={() => { onDelete(schedule); onClose(); }}>
+              <Trash2 className="h-3.5 w-3.5" /> Delete
+            </Button>
           </div>
         </div>
       </SheetContent>
@@ -219,16 +340,29 @@ function ScheduleDetailDrawer({
   );
 }
 
+// ─── TIMELINE SECTION HEADER ────────────────────────────────
+function TimelineGroup({ label, count, icon: Icon, color }: { label: string; count: number; icon: React.ElementType; color: string }) {
+  if (count === 0) return null;
+  return (
+    <div className="mb-3 flex items-center gap-2">
+      <Icon className={cn("h-3.5 w-3.5", color)} />
+      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">{label}</span>
+      <span className="text-[10px] text-muted-foreground/30">({count})</span>
+      <Separator className="flex-1 bg-white/[0.04]" />
+    </div>
+  );
+}
+
+// ─── MAIN PAGE ──────────────────────────────────────────────
 export default function SchedulesPage() {
   const { data: schedules, isLoading, error, createRecord, updateRecord, deleteRecord, refresh } = useSheetsData<DailySchedule>("DailySchedules");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"table" | "timeline">("table");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<DailySchedule | null>(null);
   const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deletingSchedule, setDeletingSchedule] = useState<DailySchedule | null>(null);
   const [selectedSchedule, setSelectedSchedule] = useState<DailySchedule | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -250,12 +384,41 @@ export default function SchedulesPage() {
     });
   }, [filtered]);
 
-  const stats = useMemo(() => ({
-    total: filtered.length,
-    running: filtered.filter((s) => s.Status === "Running").length,
-    completed: filtered.filter((s) => s.Status === "Completed").length,
-    exceptions: filtered.filter((s) => ["Cancelled", "Holiday", "Postponed"].includes(s.Status)).length,
-  }), [filtered]);
+  // Timeline grouping
+  const grouped = useMemo(() => {
+    const now = new Date();
+    const todayStr = `${now.getDate().toString().padStart(2, "0")} - ${now.toLocaleDateString("en-US", { weekday: "long" })} - ${now.toLocaleDateString("en-US", { month: "long" })} - ${now.getFullYear()}`;
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = `${tomorrow.getDate().toString().padStart(2, "0")} - ${tomorrow.toLocaleDateString("en-US", { weekday: "long" })} - ${tomorrow.toLocaleDateString("en-US", { month: "long" })} - ${tomorrow.getFullYear()}`;
+
+    const today: DailySchedule[] = [];
+    const tomorrowS: DailySchedule[] = [];
+    const upcoming: DailySchedule[] = [];
+    const past: DailySchedule[] = [];
+
+    for (const s of sorted) {
+      const d = s["Schedule Date"];
+      if (d === todayStr) today.push(s);
+      else if (d === tomorrowStr) tomorrowS.push(s);
+      else {
+        const dt = parseToISTDateObject(d, s["Start Time"] || "00:00");
+        if (dt && dt.getTime() < now.getTime()) past.push(s);
+        else upcoming.push(s);
+      }
+    }
+
+    return { today, tomorrow: tomorrowS, upcoming, past };
+  }, [sorted]);
+
+  const stats = useMemo(() => {
+    const total = schedules.length;
+    const running = schedules.filter((s) => s.Status === "Running").length;
+    const completed = schedules.filter((s) => s.Status === "Completed").length;
+    const exceptions = schedules.filter((s) => ["Cancelled", "Holiday", "Postponed"].includes(s.Status)).length;
+    const todayCount = grouped.today.length;
+    return { total, running, completed, exceptions, todayCount };
+  }, [schedules, grouped]);
 
   const handleSave = useCallback(async (data: Partial<DailySchedule>) => {
     const ok = editingSchedule ? await updateRecord({ ...data, "Task ID": editingSchedule["Task ID"] }) : await createRecord({ ...data, "Task ID": generateUniqueId() });
@@ -291,23 +454,42 @@ export default function SchedulesPage() {
   }, [deleteRecord]);
   const handleView = useCallback((s: DailySchedule) => { setSelectedSchedule(s); setDrawerOpen(true); }, []);
 
+  // ─── RENDER ───────────────────────────────────────────────
   return (
-    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="mx-auto max-w-[1600px] px-4 py-6 lg:px-8">
-      <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" className="mx-auto max-w-[1500px] px-4 py-6 lg:px-8">
+      {/* Stats Cards */}
+      <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { icon: Calendar, label: "Total Schedules", value: stats.total, desc: "All entries" },
-          { icon: Activity, label: "Running", value: stats.running, desc: "In progress now" },
-          { icon: CheckCircle2, label: "Completed", value: stats.completed, desc: "Finished" },
-          { icon: AlertTriangle, label: "Exceptions", value: stats.exceptions, desc: "Cancelled/Holiday/Postponed" },
-        ].map(({ icon: Icon, label, value, desc }, i) => (
+          { icon: Layers, label: "Total Sessions", value: stats.total, desc: "All schedule entries", trend: `${stats.todayCount} today`, trendUp: true },
+          { icon: Activity, label: "Live Now", value: stats.running, desc: "Currently running sessions", trend: stats.running > 0 ? "Active" : "Idle", trendUp: stats.running > 0 },
+          { icon: CheckCircle2, label: "Completed", value: stats.completed, desc: "Finished sessions", trend: `${Math.round((schedules.length > 0 ? stats.completed / schedules.length : 0) * 100)}% rate`, trendUp: true },
+          { icon: AlertTriangle, label: "Exceptions", value: stats.exceptions, desc: "Cancelled / Holiday / Postponed", trend: `${stats.exceptions} issues`, trendUp: false },
+        ].map(({ icon: Icon, label, value, desc, trend, trendUp }, i) => (
           <motion.div key={label} custom={i} variants={statCardVariants}>
-            <Card className="border-white/[0.06] bg-card shadow-none transition-all duration-200 hover:border-white/[0.10]">
-              <CardContent className="flex items-start gap-4 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]"><Icon className="h-4.5 w-4.5 text-muted-foreground" /></div>
-                <div>
-                  <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
+            <Card className={cn(
+              "relative overflow-hidden border-white/[0.06] bg-card shadow-none transition-all duration-300 hover:scale-[1.02]",
+              GRADIENT_CARDS[i].border
+            )}>
+              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30", GRADIENT_CARDS[i].from, GRADIENT_CARDS[i].via)} />
+              <CardContent className="relative flex items-start gap-4 p-4">
+                <div className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06]",
+                  i === 1 && stats.running > 0 ? "bg-emerald-500/10" : "bg-white/[0.04]"
+                )}>
+                  <Icon className={cn("h-4.5 w-4.5", i === 1 && stats.running > 0 ? "text-emerald-400" : "text-muted-foreground")} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
+                    {trend && (
+                      <span className={cn("flex shrink-0 items-center gap-0.5 text-[10px] font-medium", trendUp ? "text-emerald-400" : "text-rose-400")}>
+                        <ArrowUpRight className={cn("h-3 w-3", !trendUp && "rotate-90")} />
+                        {trend}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground/60">{label}</p>
-                  <p className="text-[10px] text-muted-foreground/40">{desc}</p>
+                  <p className="text-[10px] text-muted-foreground/40 truncate">{desc}</p>
                 </div>
               </CardContent>
             </Card>
@@ -315,21 +497,40 @@ export default function SchedulesPage() {
         ))}
       </motion.div>
 
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header */}
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Daily Schedules</h1>
-          <p className="mt-1 text-sm text-muted-foreground/70">Manage training routines, time blocks, and batch statuses with IST synchronization.</p>
+          <p className="mt-1 text-sm text-muted-foreground/70">Manage training sessions, time blocks, and live operations.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="flex overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.03] p-0.5">
+            <button
+              onClick={() => setViewMode("table")}
+              className={cn("rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all", viewMode === "table" ? "bg-indigo-500/10 text-indigo-400 shadow-sm" : "text-muted-foreground/50 hover:text-muted-foreground")}
+            >
+              Table
+            </button>
+            <button
+              onClick={() => setViewMode("timeline")}
+              className={cn("rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all", viewMode === "timeline" ? "bg-indigo-500/10 text-indigo-400 shadow-sm" : "text-muted-foreground/50 hover:text-muted-foreground")}
+            >
+              Timeline
+            </button>
+          </div>
           <Dialog open={isBulkDialogOpen} onOpenChange={setIsBulkDialogOpen}>
-            <Button variant="outline" size="sm" className="gap-1.5 border-white/[0.08]" onClick={() => setIsBulkDialogOpen(true)}><Layers className="h-3.5 w-3.5" /> Bulk Add</Button>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 border-white/[0.08] text-xs" onClick={() => setIsBulkDialogOpen(true)}>
+              <Layers className="h-3.5 w-3.5" /> Bulk
+            </Button>
             <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[500px]">
               <DialogHeader><DialogTitle>Bulk Create Schedules</DialogTitle><DialogDescription>Create multiple batches at once with a shared date and time.</DialogDescription></DialogHeader>
               <BulkScheduleForm onSave={handleBulkSave} isSubmitting={isBulkSubmitting} />
             </DialogContent>
           </Dialog>
           <Dialog open={isDialogOpen} onOpenChange={(v) => { setIsDialogOpen(v); if (!v) setEditingSchedule(null); }}>
-            <Button size="sm" className="gap-1.5" onClick={() => setIsDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Add Schedule</Button>
+            <Button size="sm" className="h-9 gap-1.5 text-xs" onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-3.5 w-3.5" /> Add Schedule
+            </Button>
             <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[600px]">
               <DialogHeader><DialogTitle>{editingSchedule ? "Edit Schedule" : "Add New Schedule"}</DialogTitle></DialogHeader>
               <ScheduleForm initialData={editingSchedule} onSave={handleSave} />
@@ -338,19 +539,48 @@ export default function SchedulesPage() {
         </div>
       </div>
 
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
+      {/* Search + Filter */}
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1 max-w-[700px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40" />
-          <Input placeholder="Search by batch, task ID, notes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn(INPUT_CLASS, "w-full pl-9")} />
+          <Input
+            placeholder="Search by batch name, task ID, or notes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={cn(INPUT_CLASS, "w-full pl-9")}
+          />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button onClick={() => setStatusFilter("all")} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === "all" ? "bg-indigo-500/10 text-indigo-400" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>All</button>
-          {STATUSES.map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === s ? "bg-indigo-500/10 text-indigo-400" : "text-muted-foreground/60 hover:bg-white/[0.04]", s === "Running" ? "text-emerald-400" : s === "Completed" ? "text-teal-400" : "")}>{s}</button>
-          ))}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            onClick={() => setStatusFilter("all")}
+            className={cn(
+              "rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-200",
+              statusFilter === "all" ? "bg-indigo-500/10 text-indigo-400 shadow-sm" : "text-muted-foreground/50 hover:bg-white/[0.04] hover:text-muted-foreground"
+            )}
+          >
+            All
+          </button>
+          {STATUSES.map((s) => {
+            const style = getStatusStyle(s);
+            return (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={cn(
+                  "rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-200",
+                  statusFilter === s
+                    ? cn(style.bg, "shadow-sm")
+                    : "text-muted-foreground/50 hover:bg-white/[0.04] hover:text-muted-foreground"
+                )}
+              >
+                {s}
+              </button>
+            );
+          })}
         </div>
       </div>
 
+      {/* Content */}
       {isLoading ? (
         <div className="rounded-xl border border-white/[0.06] bg-card p-4"><TableSkeleton rows={6} /></div>
       ) : error ? (
@@ -358,97 +588,288 @@ export default function SchedulesPage() {
       ) : sorted.length === 0 ? (
         <EmptyState
           title={searchTerm || statusFilter !== "all" ? "No schedules match your filters" : "No schedules yet"}
-          description="Create your first schedule to start tracking batches."
+          description={searchTerm || statusFilter !== "all" ? "Try adjusting your search or filter criteria." : "Create your first schedule to start tracking training sessions."}
           icon={Calendar}
-          action={!searchTerm && statusFilter === "all" ? <Button onClick={() => setIsDialogOpen(true)} className="gap-2"><Plus className="h-4 w-4" />Add Your First Schedule</Button> : undefined}
+          action={!searchTerm && statusFilter === "all" ? (
+            <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" /> Create Your First Schedule
+            </Button>
+          ) : undefined}
         />
+      ) : viewMode === "timeline" ? (
+        /* ─── TIMELINE VIEW ───────────────────────────── */
+        <div className="space-y-6">
+          <AnimatePresence mode="popLayout">
+            {[
+              { label: "Today", key: "today", data: grouped.today, icon: Zap, color: "text-emerald-400" },
+              { label: "Tomorrow", key: "tomorrow", data: grouped.tomorrow, icon: Calendar, color: "text-blue-400" },
+              { label: "Upcoming", key: "upcoming", data: grouped.upcoming, icon: Clock, color: "text-indigo-400" },
+              { label: "Past Sessions", key: "past", data: grouped.past, icon: RotateCcw, color: "text-muted-foreground/40" },
+            ].filter((g) => g.data.length > 0).map((group) => (
+              <motion.div key={group.key} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                <TimelineGroup label={group.label} count={group.data.length} icon={group.icon} color={group.color} />
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  {group.data.map((schedule, i) => {
+                    const style = getStatusStyle(schedule.Status);
+                    const Icon = style.icon;
+                    const isRunning = schedule.Status === "Running";
+                    const smart = formatSmartDate(schedule["Schedule Date"], schedule["Start Time"]);
+                    return (
+                      <motion.div
+                        key={schedule["Task ID"] || i}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        className={cn(
+                          "group cursor-pointer rounded-xl border bg-card p-4 transition-all duration-200 hover:scale-[1.01]",
+                          isRunning ? "border-emerald-500/30 shadow-[0_0_20px_-6px_rgba(52,211,153,0.2)]" : "border-white/[0.06] hover:border-white/[0.12] hover:bg-[#151520]"
+                        )}
+                        onClick={() => handleView(schedule)}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`View schedule for ${schedule["Batch Name"]}`}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(schedule); }}
+                      >
+                        <div className="mb-3 flex items-start justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg border", isRunning ? "border-emerald-500/20 bg-emerald-500/10" : "border-white/[0.06] bg-white/[0.04]")}>
+                              {isRunning ? (
+                                <span className="relative flex h-3 w-3">
+                                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                                  <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
+                                </span>
+                              ) : (
+                                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{schedule["Batch Name"]}</p>
+                              <p className="font-mono text-[10px] text-muted-foreground/40">{schedule["Task ID"]}</p>
+                            </div>
+                          </div>
+                          <StatusBadge status={schedule.Status} />
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground/60">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {smart.full}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {schedule["Start Time"]}
+                            {schedule["End Time"] && <span className="text-muted-foreground/40">→ {schedule["End Time"]}</span>}
+                          </span>
+                          {schedule.Duration && (
+                            <span className="flex items-center gap-1">
+                              <Timer className="h-3 w-3" />
+                              {schedule.Duration}
+                            </span>
+                          )}
+                        </div>
+                        {schedule.Notes && (
+                          <p className="mt-2 text-xs text-muted-foreground/40 line-clamp-1">{schedule.Notes}</p>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       ) : (
+        /* ─── TABLE VIEW ──────────────────────────────── */
         <>
+          {/* Desktop Table */}
           <div className="hidden overflow-hidden rounded-xl border border-white/[0.06] bg-card md:block">
             <div className="overflow-x-auto scrollbar-thin">
-                  <table className="w-full">
+              <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/[0.04]">
-                    {["Batch", "Schedule", "Status", "Duration", ""].map((h) => (
+                    {["Session", "Date & Time", "Status", "Duration", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {sorted.map((schedule, i) => (
-                    <motion.tr key={schedule["Task ID"] || i} custom={i} variants={tableRowVariants} initial="hidden" animate="visible"
-                      className="group cursor-pointer border-b border-white/[0.04] transition-all duration-200 hover:bg-white/[0.03]"
-                      onClick={() => handleView(schedule)} tabIndex={0} role="button" aria-label={`View schedule for ${schedule["Batch Name"]}`}
-                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(schedule); }}
-                    >
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04] transition-all group-hover:bg-white/[0.08]"><Calendar className="h-3.5 w-3.5 text-muted-foreground" /></div>
-                          <div>
-                            <p className="font-medium text-foreground">{schedule["Batch Name"]}</p>
-                            <p className="font-mono text-[10px] text-muted-foreground/40">{schedule["Task ID"]}</p>
+                  {sorted.map((schedule, i) => {
+                    const isRunning = schedule.Status === "Running";
+                    const style = getStatusStyle(schedule.Status);
+                    const Icon = style.icon;
+                    const smart = formatSmartDate(schedule["Schedule Date"], schedule["Start Time"]);
+                    return (
+                      <motion.tr
+                        key={schedule["Task ID"] || i}
+                        custom={i}
+                        variants={tableRowVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className={cn(
+                          "group cursor-pointer border-b border-white/[0.04] transition-all duration-200",
+                          isRunning ? "bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05]" : "hover:bg-white/[0.03]"
+                        )}
+                        onClick={() => handleView(schedule)}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`View schedule for ${schedule["Batch Name"]}`}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(schedule); }}
+                      >
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-all",
+                              isRunning ? "border-emerald-500/20 bg-emerald-500/10" : "border-white/[0.06] bg-white/[0.04] group-hover:bg-white/[0.08]"
+                            )}>
+                              {isRunning ? (
+                                <span className="relative flex h-3 w-3">
+                                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                                  <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
+                                </span>
+                              ) : (
+                                <Icon className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-foreground truncate">{schedule["Batch Name"]}</p>
+                                {isRunning && (
+                                  <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-400">
+                                    <span className="h-1 w-1 animate-pulse rounded-full bg-emerald-500" />
+                                    Live
+                                  </span>
+                                )}
+                              </div>
+                              <p className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground/40 mt-0.5">
+                                <Hash className="h-2.5 w-2.5" />
+                                {schedule["Task ID"]}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="space-y-0.5">
-                          <p className="text-sm text-foreground">{schedule["Schedule Date"]}</p>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground/60">
-                            <Clock className="h-3 w-3" />
-                            {schedule["Start Time"]}
-                            {schedule["End Time"] && <span className="text-muted-foreground/40">→ {schedule["End Time"]}</span>}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="space-y-0.5">
+                            <p className={cn(
+                              "text-sm",
+                              smart.isToday ? "text-emerald-400 font-medium" : smart.isTomorrow ? "text-blue-400" : "text-foreground"
+                            )}>
+                              {smart.label}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground/50">{smart.full}</p>
+                            {schedule["End Time"] && (
+                              <p className="flex items-center gap-1 text-[10px] text-muted-foreground/40">
+                                <Clock className="h-2.5 w-2.5" />
+                                {schedule["Start Time"]} → {schedule["End Time"]}
+                              </p>
+                            )}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4"><StatusBadge status={schedule.Status} /></td>
-                      <td className="hidden px-4 py-4 sm:table-cell text-sm text-muted-foreground">{schedule.Duration || "—"}</td>
-                      <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon-sm" className="opacity-0 transition-opacity group-hover:opacity-100" aria-label="Schedule actions"><MoreHorizontal className="h-4 w-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-40 border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
-                            <DropdownMenuItem onClick={() => handleEdit(schedule)}><Pencil className="h-3.5 w-3.5" /> Edit</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleView(schedule)}><ExternalLink className="h-3.5 w-3.5" /> View Details</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem variant="destructive" onClick={() => handleDelete(schedule)}><Trash2 className="h-3.5 w-3.5" /> Delete</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </motion.tr>
-                  ))}
+                        </td>
+                        <td className="px-4 py-4"><StatusBadge status={schedule.Status} /></td>
+                        <td className="hidden px-4 py-4 sm:table-cell">
+                          {schedule.Duration ? (
+                            <span className="inline-flex items-center gap-1 rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-1 text-[11px] font-medium text-muted-foreground">
+                              <Timer className="h-3 w-3" />
+                              {schedule.Duration}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/40">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon-sm" className="opacity-0 transition-opacity group-hover:opacity-100" aria-label="Schedule actions">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40 border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
+                              <DropdownMenuItem onClick={() => handleView(schedule)}>
+                                <ExternalLink className="h-3.5 w-3.5" /> View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEdit(schedule)}>
+                                <Pencil className="h-3.5 w-3.5" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem variant="destructive" onClick={() => handleDelete(schedule)}>
+                                <Trash2 className="h-3.5 w-3.5" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
 
+          {/* Mobile Cards */}
           <div className="grid gap-3 md:hidden">
-            {sorted.map((schedule, i) => (
-              <motion.div key={schedule["Task ID"] || i} custom={i} variants={tableRowVariants} initial="hidden" animate="visible"
-                className="cursor-pointer rounded-xl border border-white/[0.06] bg-card p-4 transition-all duration-200 hover:bg-white/[0.03]"
-                onClick={() => handleView(schedule)} tabIndex={0} role="button"
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(schedule); }}
-              >
-                <div className="mb-3 flex items-start justify-between">
-                  <div><p className="font-medium text-foreground">{schedule["Batch Name"]}</p><p className="text-xs text-muted-foreground/60">{schedule["Task ID"]}</p></div>
-                  <StatusBadge status={schedule.Status} />
-                </div>
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{schedule["Schedule Date"]}</span>
-                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{schedule["Start Time"]}{schedule["End Time"] ? ` → ${schedule["End Time"]}` : ""}</span>
-                  {schedule.Duration && <span>{schedule.Duration}</span>}
-                </div>
-                <div className="mt-3 flex items-center gap-2 border-t border-white/[0.04] pt-3">
-                  <Button variant="ghost" size="xs" className="gap-1 text-muted-foreground" onClick={(e) => { e.stopPropagation(); handleEdit(schedule); }}><Pencil className="h-3 w-3" />Edit</Button>
-                  <Button variant="ghost" size="xs" className="gap-1 text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(schedule); }}><Trash2 className="h-3 w-3" />Delete</Button>
-                </div>
-              </motion.div>
-            ))}
+            {sorted.map((schedule, i) => {
+              const isRunning = schedule.Status === "Running";
+              const style = getStatusStyle(schedule.Status);
+              const Icon = style.icon;
+              const smart = formatSmartDate(schedule["Schedule Date"], schedule["Start Time"]);
+              return (
+                <motion.div
+                  key={schedule["Task ID"] || i}
+                  custom={i}
+                  variants={tableRowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className={cn(
+                    "cursor-pointer rounded-xl border p-4 transition-all duration-200",
+                    isRunning ? "border-emerald-500/30 bg-card shadow-[0_0_20px_-6px_rgba(52,211,153,0.15)]" : "border-white/[0.06] bg-card hover:bg-white/[0.03]"
+                  )}
+                  onClick={() => handleView(schedule)}
+                  tabIndex={0}
+                  role="button"
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(schedule); }}
+                >
+                  <div className="mb-3 flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg border", isRunning ? "border-emerald-500/20 bg-emerald-500/10" : "border-white/[0.06] bg-white/[0.04]")}>
+                        {isRunning ? (
+                          <span className="relative flex h-2.5 w-2.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" /></span>
+                        ) : (
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{schedule["Batch Name"]}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground/40">{schedule["Task ID"]}</p>
+                      </div>
+                    </div>
+                    <StatusBadge status={schedule.Status} />
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground/60">
+                    <span className={cn("flex items-center gap-1", smart.isToday && "text-emerald-400")}>
+                      <Calendar className="h-3 w-3" />
+                      {smart.label}
+                    </span>
+                    {schedule.Duration && (
+                      <span className="flex items-center gap-1"><Timer className="h-3 w-3" />{schedule.Duration}</span>
+                    )}
+                  </div>
+                  <div className="mt-3 flex items-center gap-2 border-t border-white/[0.04] pt-3">
+                    <Button variant="ghost" size="xs" className="gap-1 text-muted-foreground" onClick={(e) => { e.stopPropagation(); handleEdit(schedule); }}><Pencil className="h-3 w-3" />Edit</Button>
+                    <Button variant="ghost" size="xs" className="gap-1 text-rose-400" onClick={(e) => { e.stopPropagation(); handleDelete(schedule); }}><Trash2 className="h-3 w-3" />Delete</Button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </>
       )}
 
-      <ScheduleDetailDrawer schedule={selectedSchedule} open={drawerOpen} onClose={() => { setDrawerOpen(false); setSelectedSchedule(null); }} onEdit={handleEdit} onDelete={handleDelete} />
+      {/* Detail Drawer */}
+      <ScheduleDetailDrawer
+        schedule={selectedSchedule}
+        open={drawerOpen}
+        onClose={() => { setDrawerOpen(false); setSelectedSchedule(null); }}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
     </motion.div>
   );
 }

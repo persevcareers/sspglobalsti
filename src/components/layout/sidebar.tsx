@@ -162,21 +162,21 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                           <Link href={item.href} onClick={onClose}>
                             <div
                               className={cn(
-                                "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
+                                "nav-item group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
                                 collapsed && "justify-center px-2",
                                 active
-                                  ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
-                                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                                  ? "active bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                                  : "text-muted-foreground hover:text-foreground"
                               )}
                             >
                               {active && (
                                 <motion.div
                                   layoutId="active-indicator"
-                                  className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-indigo-500"
+                                  className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"
                                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                 />
                               )}
-                              <item.icon className="h-4 w-4 shrink-0" />
+                              <item.icon className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110" />
                               <AnimatePresence mode="wait">
                                 {!collapsed && (
                                   <motion.span

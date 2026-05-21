@@ -88,7 +88,7 @@ export default function DashboardPage() {
       </motion.div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="rounded-xl border border-white/[0.06] bg-card p-0 lg:col-span-4">
+        <div className="rounded-xl border border-white/[0.06] bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)] transition-all duration-300 hover:border-white/[0.10] hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)] lg:col-span-4">
           <AreaChart title="Student Enrollments" data={studentGrowthData} className="border-0 shadow-none bg-transparent" />
         </div>
         <div className="lg:col-span-3">

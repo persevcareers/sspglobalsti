@@ -98,11 +98,11 @@
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.55 0.016 285.938);
-  --chart-1: oklch(0.871 0.006 286.286);
-  --chart-2: oklch(0.552 0.016 285.938);
-  --chart-3: oklch(0.442 0.017 285.786);
-  --chart-4: oklch(0.37 0.013 285.805);
-  --chart-5: oklch(0.274 0.006 286.033);
+  --chart-1: oklch(0.646 0.222 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.585 0.233 277.117);
   --sidebar: oklch(0.14 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -141,15 +141,36 @@
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.15);
   }
-}
 
-@utility card-hover {
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.card-hover:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
-}
-.dark .card-hover:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  .card-hover {
+    transition: box-shadow 0.3s, transform 0.3s, border-color 0.3s, background-color 0.3s;
+  }
+  .card-hover:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(99, 102, 241, 0.08);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .btn-glow {
+    transition: all 0.2s ease;
+  }
+  .btn-glow:hover {
+    box-shadow: 0 0 20px -4px rgba(99, 102, 241, 0.25);
+    transform: translateY(-1px);
+  }
+  .btn-glow:active {
+    transform: scale(0.97);
+  }
+
+  .nav-item {
+    transition: all 0.2s ease;
+  }
+  .nav-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+  .nav-item.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.04));
+    box-shadow: 0 0 20px -8px rgba(99, 102, 241, 0.2);
+  }
 }
