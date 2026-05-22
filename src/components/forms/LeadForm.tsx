@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Lead } from "@/types";
+import { getISTDateOnly } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +39,7 @@ export function LeadForm({ initialData, onSave }: LeadFormProps) {
       Source: initialData?.Source || "Website",
       "Interested Course": initialData?.["Interested Course"] || "",
       Status: initialData?.Status || "New",
-      "Follow-up Date": initialData?.["Follow-up Date"] || new Date().toISOString().split("T")[0],
+      "Follow-up Date": initialData?.["Follow-up Date"] || getISTDateOnly(),
     },
   });
 

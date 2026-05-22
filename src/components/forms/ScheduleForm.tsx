@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { DailySchedule } from "@/types";
+import { getISTDateOnly } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +47,7 @@ export function ScheduleForm({ initialData, onSave }: ScheduleFormProps) {
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
       "Batch Name": initialData?.["Batch Name"] || "",
-      "Schedule Date": initialData?.["Schedule Date"] ? parseFormattedDate(initialData["Schedule Date"]) : new Date().toISOString().split("T")[0],
+      "Schedule Date": initialData?.["Schedule Date"] ? parseFormattedDate(initialData["Schedule Date"]) : getISTDateOnly(),
       "Start Time": initialData?.["Start Time"] ? parseFormattedTime(initialData["Start Time"]) : "",
       "End Time": initialData?.["End Time"] ? parseFormattedTime(initialData["End Time"]) : "",
       Status: initialData?.Status || "Scheduled",

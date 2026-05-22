@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Student } from "@/types";
+import { getISTDateOnly } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,7 +42,7 @@ export function StudentForm({ initialData, onSave }: StudentFormProps) {
       "Phone Number": initialData?.["Phone Number"] || "",
       Course: initialData?.Course || "",
       Batch: initialData?.Batch || "",
-      "Start Date": initialData?.["Start Date"] || new Date().toISOString().split("T")[0],
+      "Start Date": initialData?.["Start Date"] || getISTDateOnly(),
       "End Date": initialData?.["End Date"] || "",
       Status: initialData?.Status || "Active",
       "Progress Percentage": Number(initialData?.["Progress Percentage"] || 0),

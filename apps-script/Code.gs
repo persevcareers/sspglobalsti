@@ -1,4 +1,23 @@
 const SCRIPT_PROP = PropertiesService.getScriptProperties();
+const TZ = "Asia/Kolkata";
+
+/** Returns an IST ISO string like "2026-05-22T10:15:30.000+05:30" */
+function istNow() {
+  const now = new Date();
+  return Utilities.formatDate(now, TZ, "yyyy-MM-dd'T'HH:mm:ss.SSS") + "+05:30";
+}
+
+/** Returns a human-readable IST string like "22 May 2026, 10:15 AM IST" */
+function istFormatted() {
+  const now = new Date();
+  return Utilities.formatDate(now, TZ, "dd MMM yyyy, hh:mm a") + " IST";
+}
+
+/** Returns IST date string for "Timestamp (IST)" column, like "May 22, 2026, 10:15:30 AM" */
+function istLogTimestamp() {
+  const now = new Date();
+  return Utilities.formatDate(now, TZ, "MMM dd, yyyy, hh:mm:ss a");
+}
 
 function setup() {
   const doc = SpreadsheetApp.getActiveSpreadsheet();
@@ -84,7 +103,7 @@ function doPost(e) {
 
     if (action === "create") {
       const newRow = headers.map(header => {
-        if (header === "Created At") return new Date().toISOString();
+        if (header === "Created At") return istNow();
         if (header.includes("ID") && !data[header]) return Utilities.getUuid();
         return data[header] !== undefined ? data[header] : "";
       });
@@ -158,7 +177,7 @@ function handleLogin(data) {
   if (!sheet) return response(false, "Users sheet not found");
 
   const now = new Date();
-  const nowISO = now.toISOString();
+  const nowTS = istNow();
 
   const sheetData = sheet.getDataRange().getValues();
   const headers = sheetData[0];
@@ -177,10 +196,10 @@ function handleLogin(data) {
       if (header === "Full Name") return data["Full Name"] || "";
       if (header === "Email") return data["Email"] || "";
       if (header === "Role") return data["Role"] || "Pending";
-      if (header === "Login Time") return nowISO;
-      if (header === "Last Active") return nowISO;
+      if (header === "Login Time") return nowTS;
+      if (header === "Last Active") return nowTS;
       if (header === "Status") return "Online";
-      if (header === "Created At") return nowISO;
+      if (header === "Created At") return nowTS;
       return "";
     });
     sheet.appendRow(newRow);
@@ -190,8 +209,8 @@ function handleLogin(data) {
       if (header === "Full Name") return data["Full Name"] || sheetData[rowIndex-1][idx];
       if (header === "Email") return data["Email"] || sheetData[rowIndex-1][idx];
       if (header === "Role") return sheetData[rowIndex-1][idx];
-      if (header === "Login Time") return nowISO;
-      if (header === "Last Active") return nowISO;
+      if (header === "Login Time") return nowTS;
+      if (header === "Last Active") return nowTS;
       if (header === "Status") return "Online";
       if (header === "Created At") return sheetData[rowIndex-1][idx];
       return sheetData[rowIndex-1][idx];
@@ -207,7 +226,7 @@ function handleLogin(data) {
       if (h === "Email") return data["Email"] || "";
       if (h === "Name") return data["Full Name"] || "";
       if (h === "Action") return "Login";
-      if (h === "Timestamp (IST)") return now.toLocaleString("en-US", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "medium" });
+      if (h === "Timestamp (IST)") return istLogTimestamp();
       return "";
     });
     logSheet.appendRow(logRow);
@@ -219,7 +238,7 @@ function handleLogin(data) {
       if (h === "Log ID") return Utilities.getUuid();
       if (h === "User ID") return data["User ID"];
       if (h === "Email") return data["Email"] || "";
-      if (h === "Login Time") return nowISO;
+      if (h === "Login Time") return nowTS;
       if (h === "Logout Time") return "";
       if (h === "Duration") return "";
       if (h === "Device") return data["Device"] || "";
@@ -242,7 +261,7 @@ function handleLogout(data) {
   if (!sheet) return response(false, "Users sheet not found");
 
   const now = new Date();
-  const nowISO = now.toISOString();
+  const nowTS = istNow();
 
   const sheetData = sheet.getDataRange().getValues();
   const headers = sheetData[0];
@@ -258,9 +277,9 @@ function handleLogout(data) {
   if (rowIndex === -1) return response(false, "User not found");
 
   const updateRow = headers.map((header, idx) => {
-    if (header === "Logout Time") return nowISO;
+    if (header === "Logout Time") return nowTS;
     if (header === "Status") return "Offline";
-    if (header === "Last Active") return nowISO;
+    if (header === "Last Active") return nowTS;
     return sheetData[rowIndex-1][idx];
   });
   sheet.getRange(rowIndex, 1, 1, headers.length).setValues([updateRow]);
@@ -273,7 +292,7 @@ function handleLogout(data) {
       if (h === "Email") return data["Email"] || "";
       if (h === "Name") return data["Full Name"] || "";
       if (h === "Action") return "Logout";
-      if (h === "Timestamp (IST)") return now.toLocaleString("en-US", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "medium" });
+      if (h === "Timestamp (IST)") return istLogTimestamp();
       return "";
     });
     logSheet.appendRow(logRow);
@@ -292,7 +311,7 @@ function handleLogout(data) {
 
         const updateHeaders = sessionSheet.getRange(1, 1, 1, sessionSheet.getLastColumn()).getValues()[0];
         const updateRow = updateHeaders.map((h, idx) => {
-          if (h === "Logout Time") return nowISO;
+          if (h === "Logout Time") return nowTS;
           if (h === "Duration") return durationStr;
           return sessionData[i][idx];
         });
@@ -311,7 +330,7 @@ function handleUpdateLastActive(data) {
 
   if (!sheet) return response(false, "Users sheet not found");
 
-  const now = new Date().toISOString();
+  const now = istNow();
   const sheetData = sheet.getDataRange().getValues();
   const headers = sheetData[0];
 
@@ -388,10 +407,7 @@ function handleCreateNotification(data) {
   if (!sheet) return response(false, "Notifications sheet not found");
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const now = new Date().toISOString();
-
-  // Dedup: skip if same userId + category + title exists within the dedup window (5 min)
-  const duplicateWindow = 5 * 60 * 1000;
+  const now = istNow();
   const userId = data.userId || "";
   const category = data.category || "info";
   const title = data.title || "";
@@ -612,7 +628,7 @@ function handleCleanupNotifications(data) {
 
   // Soft-delete expired notifications
   if (expiresAtCol !== -1) {
-    const now = new Date().toISOString();
+    const now = istNow();
     for (let i = 1; i < sheetData.length; i++) {
       const rowExpires = sheetData[i][expiresAtCol] || "";
       const rowStatus = sheetData[i][statusCol] || "";

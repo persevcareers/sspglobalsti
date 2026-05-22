@@ -79,6 +79,7 @@ import {
   formatToISTDateTime,
 } from "@/utils/dateUtils";
 import { cn } from "@/lib/utils";
+import { getISTDateOnly } from "@/lib/date-utils";
 import { fadeIn, staggerContainer, statCardVariants, tableRowVariants } from "@/lib/animations";
 import { INPUT_CLASS } from "@/constants/styles";
 const STATUSES = ["Scheduled", "Running", "Completed", "Cancelled", "Holiday", "Postponed", "PAP"] as const;
@@ -166,7 +167,7 @@ function BulkScheduleForm({
   isSubmitting: boolean;
 }) {
   const [batchNames, setBatchNames] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(getISTDateOnly());
   const [startTime, setStartTime] = useState("");
   const [notes, setNotes] = useState("");
 

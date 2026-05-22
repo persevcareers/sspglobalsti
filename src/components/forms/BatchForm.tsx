@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Batch } from "@/types";
+import { getISTDateOnly } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +36,7 @@ export function BatchForm({ initialData, onSave }: BatchFormProps) {
       "Batch Name": initialData?.["Batch Name"] || "",
       Course: initialData?.Course || "",
       Trainer: initialData?.Trainer || "",
-      "Start Date": initialData?.["Start Date"] || new Date().toISOString().split("T")[0],
+      "Start Date": initialData?.["Start Date"] || getISTDateOnly(),
       Status: initialData?.Status || "Ongoing",
     },
   });
