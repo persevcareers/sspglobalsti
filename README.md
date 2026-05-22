@@ -268,7 +268,15 @@ Deployed on **Vercel**. To deploy your own:
 
 ## Changelog
 
-### v1.15 — IST Timezone Audit & Standardization
+### v1.16 — Global Theme Stability, Error Handling & Export Fix
+- **Theme corruption ROOT CAUSE fixed** — removed `disableTransitionOnChange` from `ThemeProvider` (hard-disabled CSS transitions during theme swaps, causing partial rendering and invisible UI)
+- **Smooth theme transitions** — added MutationObserver that applies a `transitioning` CSS class on `<html>` during class changes, enabling conditional 350ms transitions on all color/border/shadow properties (replaces universal always-on transitions that caused jank)
+- **Theme flash prevention** — inline `<script>` in `<head>` reads `localStorage.theme` and applies `dark`/`light` class before React hydration, eliminating flash-of-wrong-theme
+- **Centralized toast system** — `src/lib/toast-utils.ts` with `showToast(level, title, source, opts)`, all `useSheetsData.ts` and `api.ts` generic `toast.error()` calls replaced with structured source-prefixed messages
+- **Hardcoded colors fixed** — dialog/sheet overlays: `bg-black/50` → `bg-background/50`; sign-in/sign-up pages: `bg-black` → `bg-background`
+- **Status CSS variables** — added `--color-status-success/danger/warning/info/muted` tokens with light/dark theme variants, replacing emerald/amber/red/slate hardcoded colors
+- **CSV Export implemented** — `src/lib/export-utils.ts` with generic UTF-8 BOM CSV download; wired to Export buttons on Batches and Courses pages
+- **Build verified**: `npm run build` passes with zero TypeScript errors
 - **Centralized IST helpers** — `src/lib/date-utils.ts` added with `getISTNowISO()`, `getISTFormatted()`, `getISTDateOnly()` for consistent IST date/time generation across all frontend code
 - **Apps Script IST overhaul** (`Code.gs`):
   - Added `istNow()` (ISO-8601 with `+05:30`), `istLogTimestamp()` (human-readable IST), `istFormatted()` helpers
