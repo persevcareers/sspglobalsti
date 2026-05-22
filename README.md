@@ -134,15 +134,16 @@ npm install
 5. **Deploy → New Deployment → Web App**:
    - Execute as: **Me**
    - Access: **Anyone**
-6. Copy the deployment URL
+6. Copy the deployment URL and library ID (or use the values in `.env.local` below)
 
 ### 4. Environment Variables
 
 Create `.env.local`:
 
 ```env
-NEXT_PUBLIC_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/YOUR_ID/exec
-NEXT_PUBLIC_APPS_SCRIPT_URL=https://script.google.com/macros/s/YOUR_ID/exec
+NEXT_PUBLIC_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/AKfycbzR-SezJ5GHQdAbhWMi1qav74oUS4-vP65JSC5z15dFkG2IXf7hXPvQUhHtPoJI3g/exec
+NEXT_PUBLIC_APPS_SCRIPT_URL=https://script.google.com/macros/s/AKfycbzR-SezJ5GHQdAbhWMi1qav74oUS4-vP65JSC5z15dFkG2IXf7hXPvQUhHtPoJI3g/exec
+APPS_SCRIPT_LIBRARY_ID=15dtim9WYGv9Y-w_ezsRhenEfgjEMFu9MQEDwyxqQvkw6iA-N0Pb1GfF0
 
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxx
 CLERK_SECRET_KEY=sk_test_xxxxxxxxxx
