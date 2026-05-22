@@ -29,7 +29,7 @@ function doGet(e) {
     const action = e.parameter.action;
 
     if (action === "ping") {
-      return response(true, "pong - version 2 with session tracking");
+      return response(true, "pong - version 3 with IST timestamps");
     }
 
     const sheetName = e.parameter.sheet;
