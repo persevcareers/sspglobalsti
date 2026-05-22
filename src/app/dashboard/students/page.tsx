@@ -51,6 +51,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { TableSkeleton } from "@/components/common/loading-skeleton";
 import { cn, getStatusColor } from "@/lib/utils";
 import { fadeIn, staggerContainer, statCardVariants, tableRowVariants } from "@/lib/animations";
+import { useDebounce } from "@/hooks/useDebounce";
 import { INPUT_CLASS, FILTER_ACTIVE_CLASS } from "@/constants/styles";
 const STATUSES = ["Active", "Completed", "Dropped", "On Hold"] as const;
 
@@ -137,6 +138,7 @@ function StudentDetailDrawer({
 export default function StudentsPage() {
   const { data: students, isLoading, error, refresh, createRecord, updateRecord, deleteRecord } = useSheetsData<Student>("Students");
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 250);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -145,12 +147,12 @@ export default function StudentsPage() {
 
   const filtered = useMemo(() => {
     return students.filter((s) => {
-      const q = searchTerm.toLowerCase();
+      const q = debouncedSearch.toLowerCase();
       const matchSearch = !q || s["Full Name"]?.toLowerCase().includes(q) || s.Email?.toLowerCase().includes(q) || s.Course?.toLowerCase().includes(q) || s.Batch?.toLowerCase().includes(q);
       const matchStatus = statusFilter === "all" || s.Status === statusFilter;
       return matchSearch && matchStatus;
     });
-  }, [students, searchTerm, statusFilter]);
+  }, [students, debouncedSearch, statusFilter]);
 
   const stats = useMemo(() => {
     const total = students.length;

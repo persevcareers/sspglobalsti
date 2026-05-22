@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import type { Course } from "@/types";
@@ -464,6 +465,7 @@ function MobileCourseCard({
 export default function CoursesPage() {
   const { data: courses, isLoading, error, refresh, createRecord, updateRecord, deleteRecord } = useSheetsData<Course>("Courses");
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 250);
   const [statusFilter, setStatusFilter] = useState<"all" | "Active" | "Inactive">("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
@@ -473,14 +475,14 @@ export default function CoursesPage() {
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
       const matchesSearch =
-        !searchTerm ||
-        course["Course Name"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.Modules?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.Duration?.toLowerCase().includes(searchTerm.toLowerCase());
+        !debouncedSearch ||
+        course["Course Name"]?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        course.Modules?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        course.Duration?.toLowerCase().includes(debouncedSearch.toLowerCase());
       const matchesStatus = statusFilter === "all" || course.Status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [courses, searchTerm, statusFilter]);
+  }, [courses, debouncedSearch, statusFilter]);
 
   const stats = useMemo(() => {
     const total = courses.length;

@@ -40,7 +40,10 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { fadeIn, staggerContainer } from "@/lib/animations";
 import { useAccentTheme } from "@/hooks/useAccentTheme";
+import { useSettings } from "@/hooks/useSettings";
 import { INPUT_CLASS } from "@/constants/styles";
+import { loadRoles, type RoleEntry } from "@/services/roles";
+import { useEffect } from "react";
 
 const SETTINGS_TABS = [
   { id: "profile", label: "Profile", icon: User },
@@ -51,20 +54,10 @@ const SETTINGS_TABS = [
   { id: "system", label: "System", icon: Database },
 ] as const;
 
-function SettingCard({ title, description, children, className }: { title: string; description?: string; children: React.ReactNode; className?: string }) {
-  return (
-    <Card className={cn("border-white/[0.06] bg-card shadow-none", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">{title}</CardTitle>
-        {description && <CardDescription className="text-xs text-muted-foreground/60">{description}</CardDescription>}
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
-  );
-}
-
-function ToggleSwitch({ label, description, defaultChecked }: { label: string; description?: string; defaultChecked?: boolean }) {
-  const [checked, setChecked] = useState(defaultChecked || false);
+function ToggleSwitch({ label, description, checked: controlledChecked, onChange, defaultChecked }: { label: string; description?: string; checked?: boolean; onChange?: (checked: boolean) => void; defaultChecked?: boolean }) {
+  const [internalChecked, setInternalChecked] = useState(defaultChecked ?? false);
+  const isControlled = controlledChecked !== undefined;
+  const checked = isControlled ? controlledChecked : internalChecked;
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
@@ -74,7 +67,14 @@ function ToggleSwitch({ label, description, defaultChecked }: { label: string; d
       <button
         role="switch"
         aria-checked={checked}
-        onClick={() => setChecked(!checked)}
+        onClick={() => {
+          if (isControlled) {
+            onChange?.(!checked);
+          } else {
+            setInternalChecked(!checked);
+            onChange?.(!checked);
+          }
+        }}
         className={cn(
           "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-white/[0.08] transition-colors duration-200",
           checked ? "bg-accent-base" : "bg-white/[0.06]"
@@ -83,6 +83,18 @@ function ToggleSwitch({ label, description, defaultChecked }: { label: string; d
         <span className={cn("inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200", checked ? "translate-x-[22px]" : "translate-x-[3px]")} />
       </button>
     </div>
+  );
+}
+
+function SettingCard({ title, description, children, className }: { title: string; description?: string; children: React.ReactNode; className?: string }) {
+  return (
+    <Card className={cn("border-white/[0.06] bg-card shadow-none", className)}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">{title}</CardTitle>
+        {description && <CardDescription className="text-xs text-muted-foreground/60">{description}</CardDescription>}
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 
@@ -118,7 +130,14 @@ function ThemeSelector() {
 export default function SettingsPage() {
   const { isLoaded, user } = useUser();
   const { accentColor, setAccentColor, accentColors } = useAccentTheme();
+  const { settings, updateSetting } = useSettings();
   const [testingConnection, setTestingConnection] = useState(false);
+  const [roles, setRoles] = useState<Record<string, string[]>>({});
+  const [rolesLoading, setRolesLoading] = useState(true);
+
+  useEffect(() => {
+    loadRoles().then((r) => { setRoles(r); setRolesLoading(false); });
+  }, []);
   const [clearingCache, setClearingCache] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [showApiKey, setShowApiKey] = useState(false);
@@ -287,25 +306,25 @@ export default function SettingsPage() {
 
               <SettingCard title="Layout Preferences" description="Configure how data is displayed across the platform.">
                 <div className="space-y-4">
-                  <ToggleSwitch label="Compact Mode" description="Use denser layouts for tables and cards" />
+                  <ToggleSwitch label="Compact Mode" description="Use denser layouts for tables and cards" checked={settings.compactMode} onChange={(v) => updateSetting("compactMode", v)} />
                   <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Reduced Motion" description="Disable animations for better performance" />
+                  <ToggleSwitch label="Reduced Motion" description="Disable animations for better performance" checked={settings.reducedMotion} onChange={(v) => updateSetting("reducedMotion", v)} />
                   <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Show Weekend Schedules" description="Display Saturday and Sunday schedules" defaultChecked />
+                  <ToggleSwitch label="Show Weekend Schedules" description="Display Saturday and Sunday schedules" checked={settings.showWeekends} onChange={(v) => updateSetting("showWeekends", v)} />
                   <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Collapsed Sidebar" description="Start with sidebar collapsed by default" />
+                  <ToggleSwitch label="Collapsed Sidebar" description="Start with sidebar collapsed by default" checked={settings.collapsedSidebar} onChange={(v) => updateSetting("collapsedSidebar", v)} />
                 </div>
               </SettingCard>
 
               <SettingCard title="Dashboard Widgets" description="Choose which widgets appear on your dashboard.">
                 <div className="space-y-4">
-                  <ToggleSwitch label="Stat Cards" description="Show summary statistics at the top" defaultChecked />
+                  <ToggleSwitch label="Stat Cards" description="Show summary statistics at the top" checked={settings.showStatCards} onChange={(v) => updateSetting("showStatCards", v)} />
                   <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Charts" description="Display enrollment and progress charts" defaultChecked />
+                  <ToggleSwitch label="Charts" description="Display enrollment and progress charts" checked={settings.showCharts} onChange={(v) => updateSetting("showCharts", v)} />
                   <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Online Users" description="Show active user count" defaultChecked />
+                  <ToggleSwitch label="Online Users" description="Show active user count" checked={settings.showOnlineUsers} onChange={(v) => updateSetting("showOnlineUsers", v)} />
                   <Separator className="bg-white/[0.04]" />
-                  <ToggleSwitch label="Recent Activity" description="Display recent platform activity" defaultChecked />
+                  <ToggleSwitch label="Recent Activity" description="Display recent platform activity" checked={settings.showRecentActivity} onChange={(v) => updateSetting("showRecentActivity", v)} />
                 </div>
               </SettingCard>
             </motion.div>
@@ -522,6 +541,32 @@ export default function SettingsPage() {
                     </div>
                   ))}
                 </div>
+              </SettingCard>
+
+              <SettingCard title="Role Permissions" description="Role-based access control loaded from the Roles sheet.">
+                {rolesLoading ? (
+                  <div className="flex items-center justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+                ) : Object.keys(roles).length === 0 ? (
+                  <p className="text-sm text-muted-foreground/60">No roles loaded. Using default permissions.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {Object.entries(roles).map(([roleName, permissions]) => (
+                      <div key={roleName}>
+                        <div className="mb-1.5 flex items-center gap-2">
+                          <span className="text-sm font-medium text-foreground">{roleName}</span>
+                          {permissions.includes("ALL") && <Badge variant="outline" className="border-accent-base/20 bg-accent-soft text-[10px] text-accent-base">Full Access</Badge>}
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {permissions.filter((p) => p !== "ALL").map((perm) => (
+                            <span key={perm} className="inline-flex rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 text-[10px] font-medium text-muted-foreground/80">
+                              {perm.replace(/_/g, " ")}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </SettingCard>
             </motion.div>
           )}

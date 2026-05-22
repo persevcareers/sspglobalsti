@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import type { Lead } from "@/types";
@@ -143,6 +144,7 @@ function LeadDetailDrawer({
 export default function LeadsPage() {
   const { data: leads, isLoading, error, refresh, createRecord, updateRecord, deleteRecord } = useSheetsData<Lead>("Leads");
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 250);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
@@ -151,12 +153,12 @@ export default function LeadsPage() {
 
   const filtered = useMemo(() => {
     return leads.filter((l) => {
-      const q = searchTerm.toLowerCase();
+      const q = debouncedSearch.toLowerCase();
       const matchSearch = !q || l["Lead Name"]?.toLowerCase().includes(q) || l.Contact?.toLowerCase().includes(q) || l["Interested Course"]?.toLowerCase().includes(q);
       const matchStatus = statusFilter === "all" || l.Status === statusFilter;
       return matchSearch && matchStatus;
     });
-  }, [leads, searchTerm, statusFilter]);
+  }, [leads, debouncedSearch, statusFilter]);
 
   const stats = useMemo(() => {
     const total = leads.length;

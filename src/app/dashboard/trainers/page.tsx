@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import type { Trainer } from "@/types";
@@ -147,6 +148,7 @@ function TrainerDetailDrawer({
 export default function TrainersPage() {
   const { data: trainers, isLoading, error, refresh, createRecord, updateRecord, deleteRecord } = useSheetsData<Trainer>("Trainers");
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 250);
   const [statusFilter, setStatusFilter] = useState<"all" | "Active" | "Inactive">("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTrainer, setEditingTrainer] = useState<Trainer | null>(null);
@@ -155,12 +157,12 @@ export default function TrainersPage() {
 
   const filtered = useMemo(() => {
     return trainers.filter((t) => {
-      const q = searchTerm.toLowerCase();
+      const q = debouncedSearch.toLowerCase();
       const matchSearch = !q || t.Name?.toLowerCase().includes(q) || t.Specialization?.toLowerCase().includes(q) || t.Email?.toLowerCase().includes(q);
       const matchStatus = statusFilter === "all" || t.Status === statusFilter;
       return matchSearch && matchStatus;
     });
-  }, [trainers, searchTerm, statusFilter]);
+  }, [trainers, debouncedSearch, statusFilter]);
 
   const stats = useMemo(() => {
     const total = trainers.length;

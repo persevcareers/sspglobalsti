@@ -27,13 +27,13 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 ### Core Modules
 - **Dashboard** — Stats overview, online users widget, real-time activity feed
 - **Calendar** — Enterprise FullCalendar integration with Month/Week/Day/Agenda views, drag-and-drop rescheduling, batch color coding, trainer filtering, live session indicators, event detail drawer, premium dark theme
-- **Students** — Full CRUD with search and progress tracking
+- **Students** — Full CRUD with search (debounced) and progress tracking
 - **Courses** — Premium course management with stat cards, module chip system (auto-categorized by DevOps/Cloud/Programming/AI-ML etc.), color-coded category icons, overflow handling, hover tooltips, course detail drawer with learning path visualization and module accordion
 - **Batches** — Batch management linked to courses and trainers with status badges, progress bars, filter bar
 - **Trainers** — Trainer profiles with specialization
 - **Schedules** — Daily schedule tracker (IST timezone), bulk creation, status workflow (Scheduled → Running → Completed / Cancelled / Holiday / Postponed / PAP), dual view mode (Table + Timeline)
 - **Leads** — Lead management with source tracking and follow-up dates
-- **Analytics** — Charts for lead sources, student status distribution, enrollment trends, batch progress
+- **Analytics** — Charts for lead sources, student status distribution, enrollment trends, batch progress; cached metrics with manual refresh
 
 ### Schedule Workflow
 - **Status progression** — Scheduled → Running → Completed / Cancelled / Holiday / Postponed / PAP
@@ -183,6 +183,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | **LoginLogs** | Log ID, User ID, Action, Timestamp |
 | **Notifications** | notificationId, organizationId, branchId, userId, actorId, sourceModule, category, priority, title, message, actionUrl, actionType, metadata, status, isDeleted, createdAt, expiresAt, deviceInfo, sessionId |
 | **Roles** | Role Name, Permissions |
+| **Analytics** | Metric Name, Value, Last Updated |
 
 ---
 
@@ -199,7 +200,7 @@ Browser ──► Clerk (Auth) ──► Next.js App ──► Google Apps Scrip
 | **Clerk** | Authentication, session management, user metadata (`publicMetadata.role`) |
 | **Next.js (App Router)** | Frontend rendering, API routing via `proxy.ts` middleware, client-side role checks |
 | **Google Apps Script** | REST API — CRUD operations, session tracking, notification CRUD, heartbeat updates |
-| **Google Sheets** | Operational data store — 11 sheets (Students, Courses, Batches, Trainers, Leads, DailySchedules, Users, SessionLogs, LoginLogs, Notifications, Roles) |
+| **Google Sheets** | Operational data store — 12 sheets (Students, Courses, Batches, Trainers, Leads, DailySchedules, Users, SessionLogs, LoginLogs, Notifications, Roles, Analytics) |
 
 ### Key Design Decisions
 
@@ -244,6 +245,16 @@ Deployed on **Vercel**. To deploy your own:
 ---
 
 ## Changelog
+
+### v1.14 — Codebase Cleanup, Performance & Sheet Wiring
+- **Comprehensive codebase audit** — mapped every file, identified dead code, unused imports, and missing features across the entire project
+- **Dead code removed** — deleted `sheets.ts` and `analytics.ts` services, empty `src/modules/*` directories, unused constants (`SIDEBAR_ITEMS`, `ITEMS_PER_PAGE`, `NOTIFICATION_DEDUP_WINDOW_MS`, `NOTIFICATION_SOURCES`)
+- **Debounced search** — `useDebounce` hook (300ms) applied to all 7 search inputs (calendar, students, trainers, courses, leads, schedules, data-table)
+- **Calendar navigation fix** — dynamic month/year header title, `datesSet` callback for view-aware title, IST-aware date comparison using `parseToISTDate`
+- **Compact mode CSS** — expanded to reduce card paddings, gaps, margins, heading sizes, and icon sizes for denser data display
+- **Analytics sheet wired** — `src/services/metrics.ts` with 15 cached metrics (`totalStudents`, `activeStudents`, `conversionRate`, etc.), `getCachedMetrics`/`computeAndStoreMetrics`/`metricValue` pattern, refresh button on analytics page with loading state and toast feedback
+- **Roles sheet wired** — `src/services/roles.ts` fetches role-permission mappings from Google Sheets, `getRoutesForRole` translates permissions to allowed routes, Settings → System tab shows live role permissions viewer
+- **Build verified**: `npm run build` passes with zero TypeScript errors
 
 ### v1.13 — Dynamic Accent Color System
 - **Full accent color system**: 6 selectable palettes (Indigo, Emerald, Amber, Rose, Violet, Cyan) with instant runtime switching via CSS custom properties

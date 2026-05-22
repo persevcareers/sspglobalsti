@@ -4,13 +4,16 @@ import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Student, Lead, Course, Batch } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, Target, Percent, GraduationCap, TrendingUp, PieChart as PieIcon, ArrowUpRight, Activity, BarChart3, LineChart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Target, Percent, GraduationCap, ArrowUpRight, BarChart3, RotateCcw, Loader2 } from "lucide-react";
 import { AreaChart } from "@/components/charts/area-chart";
 import { PieChart } from "@/components/charts/pie-chart";
 import { ProgressChart } from "@/components/charts/progress-chart";
-import { ChartSkeleton } from "@/components/common/loading-skeleton";
 import { fadeIn, staggerContainer, statCardVariants } from "@/lib/animations";
 import { cn } from "@/lib/utils";
+import { getCachedMetrics, computeAndStoreMetrics, metricValue, type MetricEntry } from "@/services/metrics";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 
 const GRADIENT_CARDS = [
   { from: "from-accent-base/10", via: "via-accent-base/5", border: "hover:border-accent-base/20" },
@@ -23,15 +26,38 @@ export default function AnalyticsPage() {
   const { data: students } = useSheetsData<Student>("Students");
   const { data: leads } = useSheetsData<Lead>("Leads");
   const { data: batches } = useSheetsData<Batch>("Batches");
-  const isLoading = false;
+  const [cachedMetrics, setCachedMetrics] = useState<MetricEntry[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    getCachedMetrics().then(setCachedMetrics);
+  }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const fresh = await computeAndStoreMetrics();
+      setCachedMetrics(fresh);
+      toast.success("Analytics cache refreshed");
+    } catch {
+      toast.error("Failed to refresh analytics cache");
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  const totalStudents = metricValue(cachedMetrics, "totalStudents", students.length);
+  const activeStudents = metricValue(cachedMetrics, "activeStudents", students.filter((s) => s.Status === "Active").length);
+  const totalLeads = metricValue(cachedMetrics, "totalLeads", leads.length);
+  const conversionRate = metricValue(cachedMetrics, "conversionRate", leads.length > 0 ? Math.round((leads.filter((l) => l.Status === "Converted").length / leads.length) * 100) : 0);
+  const runningBatches = metricValue(cachedMetrics, "runningBatches", batches.filter((b) => b.Status === "Ongoing").length);
+  const totalBatches = metricValue(cachedMetrics, "totalBatches", batches.length);
 
   const leadSourceMap: Record<string, number> = {};
   leads.forEach((l) => { if (l.Source) leadSourceMap[l.Source] = (leadSourceMap[l.Source] || 0) + 1; });
 
   const studentStatusMap: Record<string, number> = {};
   students.forEach((s) => { if (s.Status) studentStatusMap[s.Status] = (studentStatusMap[s.Status] || 0) + 1; });
-
-  const conversionRate = leads.length > 0 ? Math.round((leads.filter((l) => l.Status === "Converted").length / leads.length) * 100) : 0;
 
   const monthlyEnrollmentMap: Record<string, number> = {};
   students.forEach((s) => {
@@ -59,9 +85,6 @@ export default function AnalyticsPage() {
     { name: "MERN Stack - B1", progress: 85 }, { name: "Python Core - B2", progress: 45 }, { name: "UI/UX Design - B3", progress: 10 },
   ];
 
-  const activeStudents = students.filter((s) => s.Status === "Active").length;
-  const runningBatches = batches.filter((b) => b.Status === "Ongoing").length;
-
   return (
     <motion.div variants={fadeIn} initial="hidden" animate="visible" className="mx-auto max-w-[1600px] px-4 py-6 lg:px-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -69,18 +92,20 @@ export default function AnalyticsPage() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Analytics & Reports</h1>
           <p className="mt-1 text-sm text-muted-foreground/70">Data-driven insights into enrollments, conversions, and performance.</p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground/60">
-          <BarChart3 className="h-3.5 w-3.5" />
-          <span>Real-time analytics</span>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-white/[0.08]" onClick={handleRefresh} disabled={refreshing}>
+            {refreshing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+            {refreshing ? "Refreshing..." : "Refresh Cache"}
+          </Button>
         </div>
       </div>
 
       <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { icon: Users, label: "Total Students", value: students.length, desc: "Active profiles", trend: `${activeStudents} active`, trendUp: true },
-          { icon: Target, label: "Total Leads", value: leads.length, desc: "Captured opportunities", trend: leads.filter((l) => l.Status === "New").length + " new", trendUp: true },
+          { icon: Users, label: "Total Students", value: totalStudents, desc: "Enrolled learners", trend: `${activeStudents} active`, trendUp: true },
+          { icon: Target, label: "Total Leads", value: totalLeads, desc: "Captured opportunities", trend: leads.filter((l) => l.Status === "New").length + " new", trendUp: true },
           { icon: Percent, label: "Conversion Rate", value: `${conversionRate}%`, desc: "Leads → Students", trend: conversionRate >= 50 ? "Above avg" : "Below avg", trendUp: conversionRate >= 50 },
-          { icon: GraduationCap, label: "Running Batches", value: runningBatches, desc: "Currently in progress", trend: batches.length > 0 ? `${Math.round((runningBatches / batches.length) * 100)}% active` : "0%", trendUp: true },
+          { icon: GraduationCap, label: "Running Batches", value: runningBatches, desc: "Currently in progress", trend: totalBatches > 0 ? `${Math.round((runningBatches / totalBatches) * 100)}% active` : "0%", trendUp: true },
         ].map(({ icon: Icon, label, value, desc, trend, trendUp }, i) => (
           <motion.div key={label} custom={i} variants={statCardVariants}>
             <Card className={cn(

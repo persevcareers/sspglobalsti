@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/common/theme-provider";
 import { AccentThemeProvider } from "@/contexts/AccentThemeContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -43,10 +44,12 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <AccentThemeProvider>
-              <TooltipProvider>
-                {children}
-                <Toaster richColors position="top-right" />
-              </TooltipProvider>
+              <SettingsProvider>
+                <TooltipProvider>
+                  {children}
+                  <Toaster richColors position="top-right" />
+                </TooltipProvider>
+              </SettingsProvider>
             </AccentThemeProvider>
           </ThemeProvider>
         </ClerkProvider>

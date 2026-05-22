@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import type { DailySchedule } from "@/types";
@@ -356,6 +357,7 @@ function TimelineGroup({ label, count, icon: Icon, color }: { label: string; cou
 export default function SchedulesPage() {
   const { data: schedules, isLoading, error, createRecord, updateRecord, deleteRecord, refresh } = useSheetsData<DailySchedule>("DailySchedules");
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 250);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"table" | "timeline">("table");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -367,12 +369,12 @@ export default function SchedulesPage() {
 
   const filtered = useMemo(() => {
     return schedules.filter((s) => {
-      const q = searchTerm.toLowerCase();
+      const q = debouncedSearch.toLowerCase();
       const matchSearch = !q || s["Batch Name"]?.toLowerCase().includes(q) || s["Task ID"]?.toLowerCase().includes(q) || s.Notes?.toLowerCase().includes(q);
       const matchStatus = statusFilter === "all" || s.Status === statusFilter;
       return matchSearch && matchStatus;
     });
-  }, [schedules, searchTerm, statusFilter]);
+  }, [schedules, debouncedSearch, statusFilter]);
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {

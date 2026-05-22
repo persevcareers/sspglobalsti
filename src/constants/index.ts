@@ -69,24 +69,9 @@ export const USER_STATUSES = [
   { value: "Suspended", label: "Suspended" },
 ] as const;
 
-export const SIDEBAR_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-  { href: "/dashboard/students", label: "Students", icon: "Users" },
-  { href: "/dashboard/courses", label: "Courses", icon: "BookOpen" },
-  { href: "/dashboard/schedules", label: "Schedules", icon: "Calendar" },
-  { href: "/dashboard/leads", label: "Leads", icon: "Target" },
-  { href: "/dashboard/trainers", label: "Trainers", icon: "GraduationCap" },
-  { href: "/dashboard/batches", label: "Batches", icon: "Layers" },
-  { href: "/dashboard/analytics", label: "Analytics", icon: "BarChart3" },
-  { href: "/dashboard/settings", label: "Settings", icon: "Settings" },
-] as const;
-
-export const ITEMS_PER_PAGE = 10;
-
 export const ACTIVITY_TIMEOUT_MINUTES = 15;
 export const HEARTBEAT_INTERVAL_MS = 120000;
 export const NOTIFICATION_POLL_INTERVAL_MS = 10000;
-export const NOTIFICATION_DEDUP_WINDOW_MS = 5 * 60 * 1000;
 export const NOTIFICATION_FETCH_LIMIT = 50;
 
 export const NOTIFICATION_CATEGORIES = {
@@ -109,5 +94,3 @@ export const NOTIFICATION_PRIORITIES = {
 } as const;
 
 export const NOTIFICATION_STATUSES = ["unread", "read", "archived", "deleted"] as const;
-
-export const NOTIFICATION_SOURCES = ["auth", "schedules", "batches", "leads", "courses", "students", "trainers", "system", "analytics"] as const;

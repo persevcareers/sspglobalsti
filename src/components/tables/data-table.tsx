@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, ReactNode } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { motion } from "framer-motion";
 import {
   Table,
@@ -70,6 +71,7 @@ export function DataTable<T>({
   stickyHeader = true,
 }: DataTableProps<T>) {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 250);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
@@ -78,8 +80,8 @@ export function DataTable<T>({
   const filtered = useMemo(() => {
     let result = [...data];
 
-    if (search && searchFields) {
-      const q = search.toLowerCase();
+    if (debouncedSearch && searchFields) {
+      const q = debouncedSearch.toLowerCase();
       result = result.filter((item) => {
         const rec = item as Record<string, unknown>;
         return searchFields.some((field) => {
@@ -101,7 +103,7 @@ export function DataTable<T>({
     }
 
     return result;
-  }, [data, search, searchFields, sortKey, sortDir]);
+  }, [data, debouncedSearch, searchFields, sortKey, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);

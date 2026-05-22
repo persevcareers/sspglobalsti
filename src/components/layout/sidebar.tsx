@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +29,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
+import { useSettings } from "@/hooks/useSettings";
 
 const navSections = [
   {
@@ -68,14 +68,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useUser();
   const { signOut } = useClerk();
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("sidebar-collapsed") === "true";
-  });
-
-  useEffect(() => {
-    localStorage.setItem("sidebar-collapsed", String(collapsed));
-  }, [collapsed]);
+  const { settings, updateSetting } = useSettings();
+  const collapsed = settings.collapsedSidebar;
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === href;
@@ -248,7 +242,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={() => updateSetting("collapsedSidebar", !collapsed)}
               className="hidden h-8 w-8 shrink-0 md:flex"
             >
               {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}

@@ -11,6 +11,7 @@ import type { EventClickArg, EventDropArg } from "@fullcalendar/core";
 import type { EventResizeDoneArg } from "@fullcalendar/interaction";
 import type { DailySchedule, Batch, Trainer } from "@/types";
 import { fetchSheetData, modifySheetData } from "@/services/api";
+import { useSettings } from "@/hooks/useSettings";
 import {
   Search,
   Calendar,
@@ -34,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useAccentTheme } from "@/hooks/useAccentTheme";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   parseToISTDateObject,
   formatToISTDate,
@@ -97,6 +99,7 @@ function formatEventTime(startStr: string | undefined, endStr: string | undefine
 
 export default function CalendarPage() {
   const { accentPalette } = useAccentTheme();
+  const { settings } = useSettings();
   const calendarRef = useRef<FullCalendar>(null);
   const [schedules, setSchedules] = useState<DailySchedule[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
@@ -106,7 +109,10 @@ export default function CalendarPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [trainerFilter, setTrainerFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 250);
   const [view, setView] = useState("timeGridWeek");
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [headerTitle, setHeaderTitle] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -182,16 +188,16 @@ export default function CalendarPage() {
   }, [schedules, batchNames]);
 
   const filteredEvents = useMemo(() => {
-    if (trainerFilter === "all" && !searchQuery) return events;
+    if (trainerFilter === "all" && !debouncedSearch) return events;
     return events.filter((ev: any) => {
       const batch = ev.extendedProps.batchName?.toLowerCase() || "";
       const notes = ev.extendedProps.notes?.toLowerCase() || "";
-      const query = searchQuery.toLowerCase();
-      if (searchQuery && !batch.includes(query) && !notes.includes(query)) return false;
+      const query = debouncedSearch.toLowerCase();
+      if (debouncedSearch && !batch.includes(query) && !notes.includes(query)) return false;
       if (trainerFilter !== "all" && batch !== trainerFilter) return false;
       return true;
     });
-  }, [events, trainerFilter, searchQuery]);
+  }, [events, trainerFilter, debouncedSearch]);
 
   const handleEventClick = useCallback((clickInfo: EventClickArg) => {
     const props = clickInfo.event.extendedProps;
@@ -274,6 +280,38 @@ export default function CalendarPage() {
     if (api) api.next();
   }, []);
 
+  const handleDatesSet = useCallback((arg: { start: Date; end: Date; view: { type: string } }) => {
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    const d = api.getDate();
+    setCurrentDate(d);
+
+    const currentView = api.view.type;
+    const viewStart = api.view.activeStart;
+    const viewEnd = api.view.activeEnd;
+
+    if (currentView === "timeGridDay") {
+      setHeaderTitle(d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "Asia/Kolkata" }));
+    } else if (currentView === "dayGridMonth") {
+      setHeaderTitle(d.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "Asia/Kolkata" }));
+    } else {
+      const endDate = new Date(viewEnd.getTime() - 86400000);
+      const sameMonth = viewStart.getMonth() === endDate.getMonth();
+      if (sameMonth) {
+        setHeaderTitle(`${viewStart.toLocaleDateString("en-US", { month: "long", timeZone: "Asia/Kolkata" })} ${viewStart.getDate()} – ${endDate.getDate()}, ${endDate.getFullYear()}`);
+      } else {
+        setHeaderTitle(`${viewStart.toLocaleDateString("en-US", { month: "short", timeZone: "Asia/Kolkata" })} ${viewStart.getDate()} – ${endDate.toLocaleDateString("en-US", { month: "short", timeZone: "Asia/Kolkata" })} ${endDate.getDate()}, ${endDate.getFullYear()}`);
+      }
+    }
+  }, []);
+
+  const isToday = useMemo(() => {
+    const now = new Date();
+    return currentDate.getDate() === now.getDate()
+      && currentDate.getMonth() === now.getMonth()
+      && currentDate.getFullYear() === now.getFullYear();
+  }, [currentDate]);
+
   const uniqueTrainers = useMemo(() => {
     return Array.from(new Set(trainers.map((t) => t.Name).filter(Boolean)));
   }, [trainers]);
@@ -313,15 +351,15 @@ export default function CalendarPage() {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="sm" className="h-8 border-white/[0.08] text-xs" onClick={navigateToday}>
-            Today
+            {isToday ? "Today" : "↻ Today"}
           </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateNext}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="hidden sm:block text-xs font-medium text-foreground/60 px-1">
-          {/* Title is rendered by FullCalendar itself */}
+        <div className="hidden sm:block text-xs font-medium text-foreground/80 px-1 min-w-[180px]">
+          {headerTitle}
         </div>
 
         {/* View switcher */}
@@ -385,6 +423,8 @@ export default function CalendarPage() {
           events={filteredEvents as any}
           editable={true}
           selectable={true}
+          weekends={settings.showWeekends}
+          datesSet={handleDatesSet}
           eventClick={handleEventClick}
           eventDrop={handleEventDrop}
           eventResize={handleEventResize}
