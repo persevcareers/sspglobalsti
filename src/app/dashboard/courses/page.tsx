@@ -69,6 +69,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { TableSkeleton } from "@/components/common/loading-skeleton";
 import { cn, getStatusColor } from "@/lib/utils";
 import { fadeIn, staggerContainer, statCardVariants, tableRowVariants } from "@/lib/animations";
+import { exportToCSV } from "@/lib/export-utils";
 import { INPUT_CLASS } from "@/constants/styles";
 
 const MODULE_CATEGORIES: Record<string, { label: string; icon: React.ElementType; color: string }> = {
@@ -558,7 +559,7 @@ export default function CoursesPage() {
           <p className="mt-1 text-sm text-muted-foreground/70">Manage learning programs, modules, and training paths.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5 border-border text-xs">
+          <Button variant="outline" size="sm" className="gap-1.5 border-border text-xs" onClick={() => exportToCSV(courses, "Courses_Export")}>
             <FileDown className="h-3.5 w-3.5" />
             Export
           </Button>

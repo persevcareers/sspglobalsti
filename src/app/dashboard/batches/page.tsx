@@ -23,6 +23,7 @@ import { BatchForm } from "@/components/forms/BatchForm";
 import { DataTable, Column } from "@/components/tables/data-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { fadeIn, statCardVariants, staggerContainer } from "@/lib/animations";
+import { exportToCSV } from "@/lib/export-utils";
 import {
   Plus,
   Download,
@@ -202,7 +203,7 @@ export default function BatchesPage() {
           <p className="mt-0.5 text-sm text-muted-foreground/70">Manage training batches, schedules, trainers, and progress.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 gap-1.5 border-border">
+          <Button variant="outline" size="sm" className="h-9 gap-1.5 border-border" onClick={() => exportToCSV(batches, "Batches_Export")}>
             <Download className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Export</span>
           </Button>

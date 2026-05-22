@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast-utils";
 
 const SCRIPT_URL = process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL as string;
 
@@ -126,10 +126,10 @@ export const fetchSheetData = async <T>(sheetName: SheetName): Promise<T[]> => {
     } catch (error) {
       if (error instanceof GoogleAppsScriptError) {
         console.error(`[API] Apps Script error for "${sheetName}":`, error.message);
-        toast.error(`Failed to load ${sheetName} data`, { description: error.message });
+        showToast("error", `Apps Script error loading ${sheetName}`, "API", { description: error.message });
       } else {
         console.error(`[API] Network error fetching "${sheetName}":`, error);
-        toast.error(`Network error loading ${sheetName}`, { description: "Check your connection and try again." });
+        showToast("error", `Network error loading ${sheetName}`, "API", { description: "Check your connection." });
       }
       return [];
     } finally {
@@ -148,7 +148,7 @@ export const modifySheetData = async <T>(
   data: any
 ): Promise<ApiResponse<T>> => {
   if (!SCRIPT_URL) {
-    toast.error("Configuration error", { description: "Google Script URL is not configured." });
+    showToast("error", "Google Script URL not configured", "API");
     throw new Error("NEXT_PUBLIC_GOOGLE_SCRIPT_URL is not set");
   }
 
@@ -165,17 +165,17 @@ export const modifySheetData = async <T>(
       invalidateCache(sheetName);
     } else {
       console.error(`[API] ${action} failed for "${sheetName}":`, result.message);
-      toast.error(`Failed to ${action} ${sheetName}`, { description: result.message });
+      showToast("error", `${action} failed for ${sheetName}`, "API", { description: result.message });
     }
 
     return result;
   } catch (error) {
     if (error instanceof GoogleAppsScriptError) {
       console.error(`[API] Apps Script error during ${action} "${sheetName}":`, error.message);
-      toast.error(`Failed to ${action} ${sheetName}`, { description: error.message });
+      showToast("error", `Apps Script error during ${action}`, "API", { description: error.message });
     } else {
       console.error(`[API] Network error during ${action} "${sheetName}":`, error);
-      toast.error(`Network error saving ${sheetName}`, { description: "Check your connection and try again." });
+      showToast("error", `Network error during ${action}`, "API", { description: "Check your connection." });
     }
     return { success: false, message: "Network error occurred" };
   }
@@ -187,7 +187,7 @@ export const callSessionAction = async <T>(
   data?: any
 ): Promise<SessionApiResponse<T>> => {
   if (!SCRIPT_URL) {
-    toast.error("Configuration error", { description: "Google Script URL is not configured." });
+    showToast("error", "Google Script URL not configured", "API");
     throw new Error("NEXT_PUBLIC_GOOGLE_SCRIPT_URL is not set");
   }
 

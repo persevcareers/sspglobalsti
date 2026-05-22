@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { fetchSheetData, modifySheetData, SheetName } from "@/services/api";
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast-utils";
 
 function getRecordId(record: Record<string, unknown>): string | undefined {
   const idKey = Object.keys(record).find((k) => k.includes("ID") || k.includes("Id") || k.includes("id"));
@@ -30,8 +30,9 @@ export function useSheetsData<T>(sheetName: SheetName) {
       setData(result);
       snapshotRef.current = result;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load data");
-      toast.error(`Failed to load ${sheetName}`);
+      const msg = err instanceof Error ? err.message : "Request failed";
+      setError(msg);
+      showToast("error", `Could not load ${sheetName}`, "SheetsData", { description: msg });
     } finally {
       setIsLoading(false);
     }
@@ -51,22 +52,21 @@ export function useSheetsData<T>(sheetName: SheetName) {
     }
     const previousData = [...data];
     setData((prev) => [...prev, optimisticRecord as T]);
-    toast.success(`Adding to ${sheetName}...`);
 
     try {
       const response = await modifySheetData("create", sheetName, recordData);
       if (response.success) {
-        toast.success(`Successfully added to ${sheetName}`);
+        showToast("success", `Created in ${sheetName}`, "SheetsData");
         loadData();
         return true;
       } else {
         setData(previousData);
-        toast.error(response.message || "Failed to create record");
+        showToast("error", `Failed to create in ${sheetName}`, "SheetsData", { description: response.message });
         return false;
       }
     } catch {
       setData(previousData);
-      toast.error("Network error occurred");
+      showToast("error", `Network error saving to ${sheetName}`, "SheetsData");
       return false;
     }
   };
@@ -84,17 +84,17 @@ export function useSheetsData<T>(sheetName: SheetName) {
     try {
       const response = await modifySheetData("update", sheetName, recordData);
       if (response.success) {
-        toast.success(`Successfully updated in ${sheetName}`);
+        showToast("success", `Updated in ${sheetName}`, "SheetsData");
         loadData();
         return true;
       } else {
         setData(previousData);
-        toast.error(response.message || "Failed to update record");
+        showToast("error", `Failed to update in ${sheetName}`, "SheetsData", { description: response.message });
         return false;
       }
     } catch {
       setData(previousData);
-      toast.error("Network error occurred");
+      showToast("error", `Network error updating ${sheetName}`, "SheetsData");
       return false;
     }
   };
@@ -112,17 +112,17 @@ export function useSheetsData<T>(sheetName: SheetName) {
     try {
       const response = await modifySheetData("delete", sheetName, recordData);
       if (response.success) {
-        toast.success(`Successfully deleted from ${sheetName}`);
+        showToast("success", `Deleted from ${sheetName}`, "SheetsData");
         loadData();
         return true;
       } else {
         setData(previousData);
-        toast.error(response.message || "Failed to delete record");
+        showToast("error", `Failed to delete from ${sheetName}`, "SheetsData", { description: response.message });
         return false;
       }
     } catch {
       setData(previousData);
-      toast.error("Network error occurred");
+      showToast("error", `Network error deleting from ${sheetName}`, "SheetsData");
       return false;
     }
   };
