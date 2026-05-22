@@ -1,6 +1,6 @@
 # SSP Global STI
 
-An **Internal Application** for SSP Global STI. Handles end-to-end administration of students, courses, batches, trainers, schedules, leads, and user sessions with role-based access control — all powered by Google Sheets as the operational data store.
+An **Internal Application** for SSP Global STI. Handles end-to-end administration of students, courses, batches, trainers, schedules, leads, and user sessions with role-based access control — all powered by Google Sheets as the operational data store. All timestamps across the entire stack (frontend, API, Apps Script) use **Indian Standard Time (IST, UTC+05:30)** — no UTC timestamps are stored or displayed to users.
 
 > **Live:** [ssp-global-sti-ts.vercel.app](https://ssp-global-sti-ts.vercel.app)
 
@@ -41,6 +41,7 @@ An **Internal Application** for SSP Global STI. Handles end-to-end administratio
 - **IST timezone** — All timestamps stored in Indian Standard Time
 - **Bulk creation** — Generate multiple schedule entries at once
 - **Audit trail** — Created Time, Modified Time, Last Status Change Time tracked per entry
+- **IST date defaults** — All form date pickers default to today's date in IST
 
 ### User & Session Management
 - **Clerk Authentication** — Sign-up/sign-in with email + password
@@ -48,6 +49,7 @@ An **Internal Application** for SSP Global STI. Handles end-to-end administratio
 - **User Session Tracking** — Login/logout timestamps, last active heartbeat (2 min), idle detection (15 min)
 - **Online Users Widget** — Live view of active users with status badges
 - **Activity Tracking** — Mouse/keyboard/scroll idle detection with automatic status updates
+- **IST Timestamp Standardization** — All login, logout, last-active, and session timestamps stored as ISO-8601 with `+05:30` offset or human-readable IST format, never UTC
 
 ### Notifications
 - **Enterprise Schema** — 19-column sheet with `notificationId`, `organizationId`, `branchId`, `userId`, `actorId`, `sourceModule`, `category` (9 types), `priority` (4 levels), `title`, `message`, `actionUrl`, `actionType`, `metadata`, `status` (unread/read/archived/deleted), soft delete, `createdAt`, `expiresAt`, `deviceInfo`, `sessionId`
@@ -199,8 +201,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | **Batches** | Batch ID, Name, Course, Trainer, Start Date, Status |
 | **Users** | User ID, Name, Email, Role, Login/Logout, Last Active, Status |
 | **SessionLogs** | Log ID, User ID, Login/Logout, Duration, Device, Browser, IP |
-| **LoginLogs** | Log ID, User ID, Action, Timestamp |
-| **Notifications** | notificationId, organizationId, branchId, userId, actorId, sourceModule, category, priority, title, message, actionUrl, actionType, metadata, status, isDeleted, createdAt, expiresAt, deviceInfo, sessionId |
+| **LoginLogs** | Log ID, User ID, Action, Timestamp (IST) |
+| **Notifications** | notificationId, organizationId, branchId, userId, actorId, sourceModule, category, priority, title, message, actionUrl, actionType, metadata, status, isDeleted, createdAt (IST+05:30), expiresAt, deviceInfo, sessionId |
 | **Roles** | Role Name, Permissions |
 | **Analytics** | Metric Name, Value, Last Updated |
 
@@ -265,6 +267,18 @@ Deployed on **Vercel**. To deploy your own:
 ---
 
 ## Changelog
+
+### v1.15 — IST Timezone Audit & Standardization
+- **Centralized IST helpers** — `src/lib/date-utils.ts` added with `getISTNowISO()`, `getISTFormatted()`, `getISTDateOnly()` for consistent IST date/time generation across all frontend code
+- **Apps Script IST overhaul** (`Code.gs`):
+  - Added `istNow()` (ISO-8601 with `+05:30`), `istLogTimestamp()` (human-readable IST), `istFormatted()` helpers
+  - Replaced all 8 `new Date().toISOString()` calls in `handleLogin`, `handleLogout`, `handleUpdateLastActive`, `handleCreateNotification`, `handleCleanupNotifications` with `istNow()` — all stored timestamps now carry `+05:30` offset
+  - LoginLogs "Timestamp (IST)" column now written via `istLogTimestamp()` instead of `toLocaleString`
+  - Session duration calculation uses Date math correctly with IST-stored values
+- **Frontend form defaults fixed** — `StudentForm`, `BatchForm`, `LeadForm`, `ScheduleForm` use `getISTDateOnly()` instead of `new Date().toISOString().split("T")[0]` (which was UTC)
+- **`src/lib/utils.ts`** — `formatDateInput()` rewritten to use local getFullYear/getMonth/getDate instead of `d.toISOString().split("T")[0]`
+- **Schedules page** — inline calendar form default date uses `getISTDateOnly()`
+- **Build verified**: `npm run build` passes with zero TypeScript errors
 
 ### v1.14 — Codebase Cleanup, Performance & Sheet Wiring
 - **Comprehensive codebase audit** — mapped every file, identified dead code, unused imports, and missing features across the entire project
