@@ -1,8 +1,8 @@
-# SSP Global — STI Track Suite
+# SSP Global STI
 
-An **Internal Application — Track Suite** for SSP Global Software Training Institute. Handles end-to-end administration of students, courses, batches, trainers, schedules, leads, and user sessions with role-based access control — all powered by Google Sheets as the operational data store.
+An **Internal Application** for SSP Global STI. Handles end-to-end administration of students, courses, batches, trainers, schedules, leads, and user sessions with role-based access control — all powered by Google Sheets as the operational data store.
 
-> **Live:** [SSP Global-STI-TrackSuite](https://ssp-global-sti-ts.vercel.app)
+> **Live:** [ssp-global-sti-ts.vercel.app](https://ssp-global-sti-ts.vercel.app)
 
 ---
 
@@ -59,7 +59,7 @@ An **Internal Application — Track Suite** for SSP Global Software Training Ins
 - **Pagination** — Server-side limit/offset, unread count returned from server
 
 ### UI/UX
-- **Responsive** — Mobile-first with collapsible 260px sidebar (MAIN/MANAGEMENT/SYSTEM sections, logo area with "SSP Global" + "STI Track Suite", active indicator line, user footer with sign out)
+- **Responsive** — Mobile-first with collapsible 260px sidebar (MAIN/MANAGEMENT/SYSTEM sections, logo area with "SSP Global STI" branding, active indicator line, user footer with sign out)
 - **Dark Mode** — System-aware theme toggle via `next-themes` with layered surfaces (`background #0A0A0F` → `card #111118`), softer borders (8% opacity), better muted-foreground contrast (65%), `--surface` CSS token
 - **Accent Colors** — 6 selectable palettes (Indigo, Emerald, Amber, Rose, Violet, Cyan) with instant runtime switching via CSS custom properties, persisted in localStorage
 - **Layout Density** — Compact Mode reduces card padding, gaps, margins, heading and icon sizes; Reduced Motion disables animations
@@ -402,7 +402,7 @@ Deployed on **Vercel**. To deploy your own:
 - **Sidebar redesigned**:
   - Narrower width (260px from ~280px)
   - Sectioned layout: MAIN / MANAGEMENT / SYSTEM headers
-  - Logo area: "SSP Global" subtitle + "STI TrackSuite" title
+  - Logo area: "SSP Global STI" branding
   - Active indicator line (left border) for current route
   - User footer with name, role badge, and sign-out button
   - Smooth collapse/expand animation with framer motion
@@ -479,14 +479,14 @@ Deployed on **Vercel**. To deploy your own:
 
 ## Contact
 
-**Email:** persevcareers@gmail.com
+**Email:** persevcareers@gmail.com — [ssp-global-sti-ts.vercel.app](https://ssp-global-sti-ts.vercel.app)
 
 ---
 
 ## License
 
-All rights reserved — SSP Global
+All rights reserved — SSP Global STI
 
 ---
 
-Made with ❤️💕 SSP Global_STI_SS 💕❤️
+Made with ❤️💕 SSP Global STI 💕❤️

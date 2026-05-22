@@ -6,18 +6,18 @@ import { SettingsProvider } from "@/contexts/SettingsContext";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ClerkProvider } from "@clerk/nextjs";
+import { BRANDING } from "@/constants/branding";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "STI Track Suite - SSP Global",
-  description:
-    "Internal application for SSP Global Software Training Institute.",
-  keywords: ["training", "student management", "ERP", "education", "SSP Global", "STI Track Suite"],
+  title: BRANDING.metaTitle,
+  description: BRANDING.metaDescription,
+  keywords: BRANDING.metaKeywords,
   openGraph: {
-title: "STI Track Suite - SSP Global",
-    description: "Internal application for SSP Global Software Training Institute.",
+    title: BRANDING.metaTitle,
+    description: BRANDING.ogDescription,
   },
 };
 

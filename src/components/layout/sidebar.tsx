@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { BRANDING } from "@/constants/branding";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -115,8 +116,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   S
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold leading-tight">SSP Global</span>
-                  <span className="text-[10px] leading-tight text-muted-foreground">STI Track Suite</span>
+                  <span className="text-sm font-semibold leading-tight">{BRANDING.organizationName}</span>
+                  <span className="text-[10px] leading-tight text-muted-foreground">{BRANDING.appTitle}</span>
                 </div>
               </motion.div>
             ) : (

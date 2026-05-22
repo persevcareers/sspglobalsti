@@ -42,6 +42,7 @@ import { fadeIn, staggerContainer } from "@/lib/animations";
 import { useAccentTheme } from "@/hooks/useAccentTheme";
 import { useSettings } from "@/hooks/useSettings";
 import { INPUT_CLASS } from "@/constants/styles";
+import { BRANDING } from "@/constants/branding";
 import { loadRoles, type RoleEntry } from "@/services/roles";
 import { useEffect } from "react";
 
@@ -437,9 +438,9 @@ export default function SettingsPage() {
               <SettingCard title="Organization Details" description="Your training institute profile and branding.">
                 <div className="grid gap-4 md:grid-cols-2">
                   {[
-                    { label: "Organization Name", value: "SSP Global" },
-                    { label: "Platform", value: "STI Track Suite" },
-                    { label: "Contact Email", value: "admin@sspglobal.com" },
+                    { label: "Organization Name", value: BRANDING.organizationName },
+                    { label: "Platform", value: BRANDING.platformName },
+                    { label: "Contact Email", value: BRANDING.contactEmail },
                     { label: "Branch", value: "Head Office" },
                     { label: "Timezone", value: "Asia/Kolkata (IST, UTC+5:30)" },
                     { label: "Date Format", value: "DD/MM/YYYY" },
