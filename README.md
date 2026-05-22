@@ -1,6 +1,6 @@
 # SSP Global — STI TrackSuite
 
-Internal application for SSP Global. TrackSuite handles end-to-end administration of students, courses, batches, trainers, schedules, leads, and user sessions with role-based access control — all powered by Google Sheets as the operational data store.
+An **Internal Application — Track Suite** for SSP Global Software Training Institute. Handles end-to-end administration of students, courses, batches, trainers, schedules, leads, and user sessions with role-based access control — all powered by Google Sheets as the operational data store.
 
 > **Live:** [SSP Global-STI-TrackSuite](https://ssp-global-sti-ts.vercel.app)
 
