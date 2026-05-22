@@ -245,6 +245,21 @@ Deployed on **Vercel**. To deploy your own:
 
 ## Changelog
 
+### v1.13 — Dynamic Accent Color System
+- **Full accent color system**: 6 selectable palettes (Indigo, Emerald, Amber, Rose, Violet, Cyan) with instant runtime switching via CSS custom properties
+- **AccentThemeContext + useAccentTheme hook**: React context managing accent state with typed `AccentColorName` and `AccentPalette` interfaces
+- **CSS variable architecture**: `--accent-base/heavy/soft/fg/ring/glow` mapped via Tailwind v4 `@theme inline` as `bg-accent-base`, `text-accent-base`, `border-accent-base`, `ring-accent-ring`, `bg-accent-soft`, etc. — no conflict with shadcn's existing `--accent` hover token
+- **Flash prevention**: Inline `<script>` in `<head>` reads `localStorage` and applies CSS vars before React hydration renders anything visible
+- **Persistence**: `accent-color` key in localStorage, automatically applied on every page load
+- **Interactive settings UI**: Accent color buttons in Settings → Appearance now show active selection ring + checkmark, update the entire dashboard on click
+- **All hardcoded accent colors replaced**: `bg-indigo-500/10` → `bg-accent-soft`, `text-indigo-400` → `text-accent-base`, `border-indigo-500/20` → `border-accent-base/20`, etc. across 18 components (sidebar, navbar, charts, calendar, all list pages)
+- **Dynamic chart colors**: Recharts components (Area, Bar, Pie, Progress) read `accentPalette.base` from context for primary series colors; gradient stops and stroke colors update reactively
+- **FullCalendar dynamic theming**: `.calendar-premium` CSS updated to use `var(--accent-base)` and `color-mix()` for event colors, active button states, highlights — all update instantly with accent switch
+- **Utility classes updated**: `.card-hover`, `.btn-glow`, `.nav-item.active` now use `color-mix(in srgb, var(--accent-base) …)` instead of hardcoded `rgba(99,102,241,…)`
+- **Shared style constants**: `INPUT_CLASS`, `FILTER_ACTIVE_CLASS`, `TAB_ACTIVE_CLASS` in `src/constants/styles.ts` eliminating 6 duplicate declarations across pages
+- **Smooth transitions**: `background-color`, `border-color`, `box-shadow`, `color` all animate with 250ms ease
+- **Build verified**: `npm run build` passes with zero TypeScript errors
+
 ### v1.12 — Enterprise Calendar System & Settings Redesign
 - **Settings page restructured** — Removed Integrations tab (Google Calendar/Slack/Zapier), replaced with 6 clean tabs: Profile, Appearance, Notifications, Security, Organization, System
 - **Appearance tab**: Theme picker (Light/Dark/System), accent color selectors (6 colors), layout density toggles (Compact Mode, Reduced Motion, Weekend Schedules, Collapsed Sidebar), dashboard widget customization (Stat Cards, Charts, Online Users, Recent Activity)
