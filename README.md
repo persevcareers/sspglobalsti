@@ -2,7 +2,7 @@
 
 An **internal training institute management platform** for SSP Global. TrackSuite handles end-to-end administration of students, courses, batches, trainers, schedules, leads, and user sessions with role-based access control — all powered by Google Sheets as the operational data store.
 
-> **Live:** [Tracking-Application](ssp-global-sti-ts.vercel.app)
+> **Live:** [ssp-global-sti-ts.vercel.app](https://ssp-global-sti-ts.vercel.app)
 
 ---
 
@@ -34,6 +34,7 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 - **Schedules** — Daily schedule tracker (IST timezone), bulk creation, status workflow (Scheduled → Running → Completed / Cancelled / Holiday / Postponed / PAP), dual view mode (Table + Timeline)
 - **Leads** — Lead management with source tracking and follow-up dates
 - **Analytics** — Charts for lead sources, student status distribution, enrollment trends, batch progress; cached metrics with manual refresh
+- **Settings** — Profile, Appearance (accent colors, compact mode, reduced motion), Organization, Security, System tabs
 
 ### Schedule Workflow
 - **Status progression** — Scheduled → Running → Completed / Cancelled / Holiday / Postponed / PAP
@@ -60,15 +61,18 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 ### UI/UX
 - **Responsive** — Mobile-first with collapsible 260px sidebar (MAIN/MANAGEMENT/SYSTEM sections, logo area with "SSP Global" + "STI TrackSuite", active indicator line, user footer with sign out)
 - **Dark Mode** — System-aware theme toggle via `next-themes` with layered surfaces (`background #0A0A0F` → `card #111118`), softer borders (8% opacity), better muted-foreground contrast (65%), `--surface` CSS token
-- **Batches Page** — Stat cards (total batches, active, completed, upcoming), filter bar with status dropdown + search, sortable table with progress bars, status badges (colored dot + glow), pagination, empty/error states, delete confirmation dialog
+- **Accent Colors** — 6 selectable palettes (Indigo, Emerald, Amber, Rose, Violet, Cyan) with instant runtime switching via CSS custom properties, persisted in localStorage
+- **Layout Density** — Compact Mode reduces card padding, gaps, margins, heading and icon sizes; Reduced Motion disables animations
 - **Reusable DataTable** — Generic sortable/searchable/paginated component with loading/empty/error states and framer-motion stagger animations, used across all list pages
+- **Debounced Search** — 300ms `useDebounce` hook applied to all search inputs across calendar, students, trainers, courses, leads, schedules, and data-table
 - **Optimistic Updates** — Snapshot → mutate → rollback on failure pattern masks Google Sheets 1–3s latency across all CRUD operations
 - **Framer Motion** — Page transitions, staggered row entrance, animated stat cards, sidebar collapse animation, notification panel mount/unmount, pulse loaders
 - **Card Hover** — `card-hover` CSS utility with lift + shadow micro-interaction
 - **Error Handling** — `safeFetch` helper detects HTML responses before JSON parse, invalid JSON, bad HTTP statuses, and surfaces errors via sonner toasts
-- **Caching** — 30-second in-memory cache + request deduplication prevents concurrent duplicate fetches
+- **Caching** — 30-second in-memory cache + request deduplication prevents concurrent duplicate fetches; analytics cache with 15 cached metrics and manual refresh
 - **Loading Skeletons** — Shimmer placeholders during data fetches
 - **Toast Notifications** — Success/error toasts via sonner
+- **Role Permissions Viewer** — Settings → System tab shows live role-permission mappings loaded from the Roles sheet
 
 ---
 
@@ -212,7 +216,7 @@ Browser ──► Clerk (Auth) ──► Next.js App ──► Google Apps Scrip
 
 | Layer | Role |
 |-------|------|
-| **Clerk** | Authentication, session management, user metadata (`publicMetadata.role`) |
+| **Clerk v7** | Authentication, session management, user metadata (`publicMetadata.role`) |
 | **Next.js (App Router)** | Frontend rendering, API routing via `proxy.ts` middleware, client-side role checks |
 | **Google Apps Script** | REST API — CRUD operations, session tracking, notification CRUD, heartbeat updates |
 | **Google Sheets** | Operational data store — 12 sheets (Students, Courses, Batches, Trainers, Leads, DailySchedules, Users, SessionLogs, LoginLogs, Notifications, Roles, Analytics) |
@@ -222,8 +226,8 @@ Browser ──► Clerk (Auth) ──► Next.js App ──► Google Apps Scrip
 - **No database server** — Google Sheets acts as the sole data store via Apps Script REST API, eliminating hosting costs for the backend
 - **30s in-memory cache** on reads + request deduplication to mitigate Google Sheets 1–3s latency
 - **Optimistic UI** — snapshot → mutate → rollback on failure pattern across all mutations for instant user feedback
-- **Beacon API** for reliable logout detection on tab close (Clerk v6 dropped `window.Clerk.addListener`)
-- **Middleware** (`proxy.ts`) — pure auth-only route protection; role checking is client-side because `publicMetadata` is unavailable on the middleware auth object in Clerk v6
+- **Beacon API** for reliable logout detection on tab close (Clerk v7 dropped `window.Clerk.addListener`)
+- **Middleware** (`proxy.ts`) — pure auth-only route protection; role checking is client-side because `publicMetadata` is unavailable on the middleware auth object in Clerk v7
 - **Notification polling** at 10s intervals (Google Sheets has no real-time push capability), with desktop Notification API for background tab alerts. Enterprise schema with 19 columns, deduplication (5-min window), auto-cleanup (30d archive, 90d delete), and priority/category system.
 
 ---
@@ -242,6 +246,7 @@ Browser ──► Clerk (Auth) ──► Next.js App ──► Google Apps Scrip
 ## Performance Notes
 
 - Google Sheets has **1–3s latency** per operation. In-memory caching (30s TTL) + optimistic updates mask this.
+- Analytics metrics are cached in a dedicated sheet with manual refresh, avoiding redundant computations across page loads.
 - Activity heartbeats are throttled to 2-minute intervals; idle detection at 15 minutes.
 - Notification polling runs every 10 seconds.
 - For production scale, consider migrating to **Supabase** (PostgreSQL).
