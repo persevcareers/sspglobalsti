@@ -27,7 +27,7 @@ export function generateId(): string {
 export function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
     active: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    inactive: "bg-gray-500/10 text-gray-400 border-gray-500/20",
+    inactive: "bg-muted/50 text-muted-foreground border-border",
     completed: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     dropped: "bg-red-500/10 text-red-500 border-red-500/20",
     "in-progress": "bg-amber-500/10 text-amber-500 border-amber-500/20",

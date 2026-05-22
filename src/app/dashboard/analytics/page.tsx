@@ -93,7 +93,7 @@ export default function AnalyticsPage() {
           <p className="mt-1 text-sm text-muted-foreground/70">Data-driven insights into enrollments, conversions, and performance.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-white/[0.08]" onClick={handleRefresh} disabled={refreshing}>
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-border" onClick={handleRefresh} disabled={refreshing}>
             {refreshing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
             {refreshing ? "Refreshing..." : "Refresh Cache"}
           </Button>
@@ -109,12 +109,12 @@ export default function AnalyticsPage() {
         ].map(({ icon: Icon, label, value, desc, trend, trendUp }, i) => (
           <motion.div key={label} custom={i} variants={statCardVariants}>
             <Card className={cn(
-              "relative overflow-hidden border-white/[0.06] bg-card shadow-none transition-all duration-300 hover:scale-[1.02]",
+              "relative overflow-hidden border-border bg-card shadow-none transition-all duration-300 hover:scale-[1.02]",
               GRADIENT_CARDS[i].border
             )}>
               <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30", GRADIENT_CARDS[i].from, GRADIENT_CARDS[i].via)} />
               <CardContent className="relative flex items-start gap-4 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card-hover-bg">
                   <Icon className="h-4.5 w-4.5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
@@ -137,19 +137,19 @@ export default function AnalyticsPage() {
       </motion.div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="rounded-xl border border-white/[0.06] bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)] transition-all duration-300 hover:border-white/[0.10] hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)] lg:col-span-4">
+        <div className="rounded-xl border border-border bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.15)] transition-all duration-300 hover:border-border hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)] lg:col-span-4">
           <AreaChart title="Student Enrollment Growth" data={finalEnrollmentTrendData} className="border-0 shadow-none bg-transparent" />
         </div>
-        <div className="rounded-xl border border-white/[0.06] bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)] transition-all duration-300 hover:border-white/[0.10] hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)] lg:col-span-3">
+        <div className="rounded-xl border border-border bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.15)] transition-all duration-300 hover:border-border hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)] lg:col-span-3">
           <PieChart title="Lead Sources Distribution" data={finalLeadSourceData} className="border-0 shadow-none bg-transparent" />
         </div>
       </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="rounded-xl border border-white/[0.06] bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)] transition-all duration-300 hover:border-white/[0.10] hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)] lg:col-span-3">
+        <div className="rounded-xl border border-border bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.15)] transition-all duration-300 hover:border-border hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)] lg:col-span-3">
           <PieChart title="Student Status Distribution" data={finalStudentStatusData} className="border-0 shadow-none bg-transparent" />
         </div>
-        <div className="rounded-xl border border-white/[0.06] bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)] transition-all duration-300 hover:border-white/[0.10] hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)] lg:col-span-4">
+        <div className="rounded-xl border border-border bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.15)] transition-all duration-300 hover:border-border hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)] lg:col-span-4">
           <ProgressChart title="Batch Progress Breakdown" data={batchProgressData} className="border-0 shadow-none bg-transparent" />
         </div>
       </div>

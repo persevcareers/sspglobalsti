@@ -344,13 +344,13 @@ export default function CalendarPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.06] bg-card p-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
         {/* Navigation */}
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigatePrev}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" className="h-8 border-white/[0.08] text-xs" onClick={navigateToday}>
+          <Button variant="outline" size="sm" className="h-8 border-border text-xs" onClick={navigateToday}>
             {isToday ? "Today" : "↻ Today"}
           </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateNext}>
@@ -363,7 +363,7 @@ export default function CalendarPage() {
         </div>
 
         {/* View switcher */}
-        <div className="flex rounded-lg border border-white/[0.06] p-0.5">
+        <div className="flex rounded-lg border border-border p-0.5">
           {[
             { id: "dayGridMonth", label: "Month" },
             { id: "timeGridWeek", label: "Week" },
@@ -393,7 +393,7 @@ export default function CalendarPage() {
             placeholder="Search events..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 border-white/[0.08] bg-white/[0.04] pl-8 text-xs"
+            className="h-8 border-border bg-card-hover-bg pl-8 text-xs"
           />
         </div>
 
@@ -403,7 +403,7 @@ export default function CalendarPage() {
           <select
             value={trainerFilter}
             onChange={(e) => setTrainerFilter(e.target.value)}
-            className="h-8 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 text-xs text-foreground outline-none focus:border-accent-base/50"
+            className="h-8 rounded-lg border border-border bg-card-hover-bg px-2 text-xs text-foreground outline-none focus:border-accent-base/50"
           >
             <option value="all">All Batches</option>
             {batchNames.map((name) => (
@@ -414,7 +414,7 @@ export default function CalendarPage() {
       </div>
 
       {/* Calendar */}
-      <div className="calendar-premium rounded-xl border border-white/[0.06] bg-card overflow-hidden">
+      <div className="calendar-premium rounded-xl border border-border bg-card overflow-hidden">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
@@ -483,7 +483,7 @@ export default function CalendarPage() {
       </div>
 
       {/* Legend */}
-      <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-white/[0.06] bg-card px-4 py-3">
+      <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card px-4 py-3">
         <span className="text-[11px] font-medium text-muted-foreground/60">Status Legend:</span>
         {Object.entries(statusColors).map(([status, color]) => (
           <div key={status} className="flex items-center gap-1.5">
@@ -507,7 +507,7 @@ export default function CalendarPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm"
               onClick={() => setDrawerOpen(false)}
             />
             <motion.div
@@ -515,11 +515,11 @@ export default function CalendarPage() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col border-l border-white/[0.06] bg-[#0A0A0F] shadow-2xl"
+              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col border-l border-border bg-background shadow-2xl"
             >
-              <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
+              <div className="flex items-center justify-between border-b border-border px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]"
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card-hover-bg"
                     style={{ backgroundColor: getBatchColor(selectedEvent["Batch Name"], batchNames.indexOf(selectedEvent["Batch Name"])) + "20" }}
                   >
                     <Calendar className="h-5 w-5" style={{ color: getBatchColor(selectedEvent["Batch Name"], batchNames.indexOf(selectedEvent["Batch Name"])) }} />
@@ -564,7 +564,7 @@ export default function CalendarPage() {
                       { label: "End Time", value: selectedEvent["End Time"] || "—", icon: Timer },
                       { label: "Duration", value: selectedEvent.Duration || calculateDuration(selectedEvent["Start Time"] || "", selectedEvent["End Time"] || "") || "—", icon: Timer },
                     ].map(({ label, value, icon: Icon }) => (
-                      <div key={label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+                      <div key={label} className="rounded-lg border border-border bg-card-hover-bg p-3">
                         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
                           <Icon className="h-3 w-3" />
                           {label}
@@ -579,7 +579,7 @@ export default function CalendarPage() {
                 {selectedEvent.Notes && (
                   <div>
                     <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground/50">Notes</h3>
-                    <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+                    <div className="rounded-lg border border-border bg-card-hover-bg p-3">
                       <p className="text-sm text-foreground/80">{selectedEvent.Notes}</p>
                     </div>
                   </div>
@@ -594,7 +594,7 @@ export default function CalendarPage() {
                       { label: "Created", value: selectedEvent["Created Time (IST)"] || "—" },
                       { label: "Last Status Change", value: selectedEvent["Last Status Change Time (IST)"] || "—" },
                     ].filter((h) => h.value !== "—" && h.value).map(({ label, value }) => (
-                      <div key={label} className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2">
+                      <div key={label} className="flex items-center justify-between rounded-lg bg-card-hover-bg px-3 py-2">
                         <span className="text-xs text-muted-foreground/60">{label}</span>
                         <span className="text-xs text-foreground/80">{value}</span>
                       </div>

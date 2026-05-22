@@ -131,7 +131,7 @@ function ModuleChip({ name, size = "sm" }: { name: string; size?: "sm" | "xs" })
             {name}
           </span>
         </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-[260px] border border-white/[0.06] bg-[#1A1A22]/95 backdrop-blur-xl text-xs">
+        <TooltipContent side="top" className="max-w-[260px] border border-border bg-popover/95 backdrop-blur-xl text-xs">
           <div className="space-y-1">
             <p className="font-medium text-foreground">{name}</p>
             <p className="text-muted-foreground">
@@ -203,7 +203,7 @@ function CourseDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <SheetContent className="w-full border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-lg">
+      <SheetContent className="w-full border-border bg-popover/95 backdrop-blur-xl sm:max-w-lg">
         <SheetHeader className="pb-0">
           <SheetTitle className="text-xl">{course.course["Course Name"]}</SheetTitle>
           <div className="mt-1 flex items-center gap-3">
@@ -225,7 +225,7 @@ function CourseDetailDrawer({
           </SheetDescription>
         </SheetHeader>
 
-        <Separator className="my-4 bg-white/[0.06]" />
+        <Separator className="my-4 bg-border" />
 
         <div className="flex-1 space-y-6 overflow-y-auto px-4 pb-8 scrollbar-thin">
           <div>
@@ -250,7 +250,7 @@ function CourseDetailDrawer({
             <ModuleAccordion modules={modules} />
           </div>
 
-          <Separator className="bg-white/[0.06]" />
+          <Separator className="bg-border" />
 
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -259,7 +259,7 @@ function CourseDetailDrawer({
               { label: "Status", value: course.course.Status, icon: AlertCircle },
               { label: "Course ID", value: course.course["Course ID"]?.slice(0, 12) + "...", icon: Library },
             ].map(({ label, value, icon: Icon }) => (
-              <div key={label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+              <div key={label} className="rounded-lg border border-border bg-card-hover-bg p-3">
                 <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/50">
                   <Icon className="h-3 w-3" />
                   {label}
@@ -310,7 +310,7 @@ function CourseRow({
       variants={tableRowVariants}
       initial="hidden"
       animate="visible"
-      className="group cursor-pointer border-b border-white/[0.04] transition-all duration-200 hover:bg-white/[0.03]"
+      className="group cursor-pointer border-b border-border/40 transition-all duration-200 hover:bg-card-hover-bg"
       onClick={() => onView(course)}
       tabIndex={0}
       role="button"
@@ -319,7 +319,7 @@ function CourseRow({
     >
       <td className="px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04] transition-all group-hover:bg-white/[0.08]">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card-hover-bg transition-all group-hover:bg-card-hover-bg">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </div>
           <div>
@@ -338,13 +338,13 @@ function CourseRow({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span
-                    className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-muted-foreground/70 transition-all duration-200 hover:bg-white/[0.08] hover:text-foreground"
+                    className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border bg-card-hover-bg px-2.5 py-1 text-[11px] font-medium text-muted-foreground/70 transition-all duration-200 hover:bg-card-hover-bg hover:text-foreground"
                     onClick={(e) => { e.stopPropagation(); onView(course); }}
                   >
                     +{overflow} more
                   </span>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="border border-white/[0.06] bg-[#1A1A22]/95 backdrop-blur-xl">
+                <TooltipContent side="top" className="border border-border bg-popover/95 backdrop-blur-xl">
                   <p className="text-xs">{modules.slice(5).join(", ")}</p>
                 </TooltipContent>
               </Tooltip>
@@ -370,7 +370,7 @@ function CourseRow({
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40 border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
+          <DropdownMenuContent align="end" className="w-40 border-border bg-popover/95 backdrop-blur-xl">
             <DropdownMenuItem onClick={() => onEdit(course)}>
               <Pencil className="h-3.5 w-3.5" />
               Edit
@@ -418,7 +418,7 @@ function MobileCourseCard({
       variants={tableRowVariants}
       initial="hidden"
       animate="visible"
-      className="cursor-pointer rounded-xl border border-white/[0.06] bg-card p-4 transition-all duration-200 hover:bg-white/[0.03]"
+      className="cursor-pointer rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:bg-card-hover-bg"
       onClick={() => onView(course)}
       tabIndex={0}
       role="button"
@@ -441,12 +441,12 @@ function MobileCourseCard({
           <ModuleChip key={m} name={m} size="xs" />
         ))}
         {overflow > 0 && (
-          <span className="inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-muted-foreground/70">
+          <span className="inline-flex items-center rounded-full border border-border bg-card-hover-bg px-2 py-0.5 text-[10px] font-medium text-muted-foreground/70">
             +{overflow} more
           </span>
         )}
       </div>
-      <div className="mt-3 flex items-center gap-2 border-t border-white/[0.04] pt-3">
+      <div className="mt-3 flex items-center gap-2 border-t border-border/40 pt-3">
         <Button variant="ghost" size="xs" className="gap-1 text-muted-foreground" onClick={(e) => { e.stopPropagation(); onEdit(course); }}>
           <Pencil className="h-3 w-3" />
           Edit
@@ -535,9 +535,9 @@ export default function CoursesPage() {
           { label: "Total Modules", value: stats.totalModules, icon: BookOpen, desc: "Across all courses" },
         ].map(({ label, value, icon: Icon, desc }, i) => (
           <motion.div key={label} custom={i} variants={statCardVariants}>
-            <Card className="border-white/[0.06] bg-card shadow-none transition-all duration-200 hover:border-white/[0.10]">
+            <Card className="border-border bg-card shadow-none transition-all duration-200 hover:border-card-hover-bg">
               <CardContent className="flex items-start gap-4 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card-hover-bg">
                   <Icon className="h-4.5 w-4.5 text-muted-foreground" />
                 </div>
                 <div>
@@ -558,7 +558,7 @@ export default function CoursesPage() {
           <p className="mt-1 text-sm text-muted-foreground/70">Manage learning programs, modules, and training paths.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5 border-white/[0.08] text-xs">
+          <Button variant="outline" size="sm" className="gap-1.5 border-border text-xs">
             <FileDown className="h-3.5 w-3.5" />
             Export
           </Button>
@@ -567,7 +567,7 @@ export default function CoursesPage() {
               <Plus className="h-3.5 w-3.5" />
               Add Course
             </Button>
-            <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[500px]">
+            <DialogContent className="border-border bg-popover/95 backdrop-blur-xl sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>{editingCourse ? "Edit Course" : "Add New Course"}</DialogTitle>
               </DialogHeader>
@@ -597,13 +597,13 @@ export default function CoursesPage() {
                 "rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200",
                 statusFilter === s
                   ? "bg-accent-soft text-accent-base"
-                  : "text-muted-foreground/60 hover:bg-white/[0.04] hover:text-muted-foreground"
+                  : "text-muted-foreground/60 hover:bg-card-hover-bg hover:text-muted-foreground"
               )}
             >
               {s === "all" ? "All" : s}
             </button>
           ))}
-          <Separator orientation="vertical" className="mx-1 h-5 bg-white/[0.06]" />
+          <Separator orientation="vertical" className="mx-1 h-5 bg-border" />
           <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground/60">
             <SlidersHorizontal className="h-3.5 w-3.5" />
             Filters
@@ -613,7 +613,7 @@ export default function CoursesPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <TableSkeleton rows={6} />
         </div>
       ) : error ? (
@@ -639,11 +639,11 @@ export default function CoursesPage() {
       ) : (
         <>
           {/* Desktop Table */}
-          <div className="hidden overflow-hidden rounded-xl border border-white/[0.06] bg-card md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
             <div className="overflow-x-auto scrollbar-thin">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/[0.04]">
+                  <tr className="border-b border-border/40">
                     {["Course Name", "Modules", "Duration", "Status", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">
                         {h}

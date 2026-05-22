@@ -103,10 +103,10 @@ function LeadDetailDrawer({
   if (!lead) return null;
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <SheetContent className="w-full border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-lg">
+      <SheetContent className="w-full border-border bg-popover/95 backdrop-blur-xl sm:max-w-lg">
         <SheetHeader className="pb-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]"><User className="h-6 w-6 text-muted-foreground" /></div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-card-hover-bg"><User className="h-6 w-6 text-muted-foreground" /></div>
             <div>
               <SheetTitle className="text-xl">{lead["Lead Name"]}</SheetTitle>
               <div className="mt-1 flex items-center gap-2">
@@ -117,7 +117,7 @@ function LeadDetailDrawer({
           </div>
           <SheetDescription className="mt-3 text-sm text-muted-foreground/70">{lead.Contact}</SheetDescription>
         </SheetHeader>
-        <Separator className="my-4 bg-white/[0.06]" />
+        <Separator className="my-4 bg-border" />
         <div className="space-y-4 px-4 pb-8">
           <div className="grid gap-3">
             {[
@@ -125,7 +125,7 @@ function LeadDetailDrawer({
               { icon: BookOpen, label: "Interested Course", value: lead["Interested Course"] || "—" },
               { icon: Calendar, label: "Follow-up Date", value: lead["Follow-up Date"] || "—" },
             ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+              <div key={label} className="rounded-lg border border-border bg-card-hover-bg p-3">
                 <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/50"><Icon className="h-3 w-3" />{label}</div>
                 <p className="mt-1 text-sm font-medium text-foreground">{value}</p>
               </div>
@@ -190,9 +190,9 @@ export default function LeadsPage() {
           { icon: CheckCircle2, label: "Converted", value: stats.converted, desc: "Successfully enrolled" },
         ].map(({ icon: Icon, label, value, desc }, i) => (
           <motion.div key={label} custom={i} variants={statCardVariants}>
-            <Card className="border-white/[0.06] bg-card shadow-none transition-all duration-200 hover:border-white/[0.10]">
+            <Card className="border-border bg-card shadow-none transition-all duration-200 hover:border-border">
               <CardContent className="flex items-start gap-4 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]"><Icon className="h-4.5 w-4.5 text-muted-foreground" /></div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card-hover-bg"><Icon className="h-4.5 w-4.5 text-muted-foreground" /></div>
                 <div>
                   <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
                   <p className="text-xs text-muted-foreground/60">{label}</p>
@@ -211,7 +211,7 @@ export default function LeadsPage() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(v) => { setIsDialogOpen(v); if (!v) setEditingLead(null); }}>
           <Button size="sm" className="gap-1.5" onClick={() => setIsDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Add Lead</Button>
-          <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[500px]">
+          <DialogContent className="border-border bg-popover/95 backdrop-blur-xl sm:max-w-[500px]">
             <DialogHeader><DialogTitle>{editingLead ? "Edit Lead" : "Add New Lead"}</DialogTitle></DialogHeader>
             <LeadForm initialData={editingLead} onSave={handleSave} />
           </DialogContent>
@@ -224,15 +224,15 @@ export default function LeadsPage() {
           <Input placeholder="Search leads by name, contact, course..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn(INPUT_CLASS, "w-full pl-9")} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={() => setStatusFilter("all")} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === "all" ? "bg-accent-soft text-accent-base" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>All</button>
+          <button onClick={() => setStatusFilter("all")} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === "all" ? "bg-accent-soft text-accent-base" : "text-muted-foreground/60 hover:bg-card-hover-bg")}>All</button>
           {STATUSES.map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === s ? "bg-accent-soft text-accent-base" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>{s}</button>
+            <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === s ? "bg-accent-soft text-accent-base" : "text-muted-foreground/60 hover:bg-card-hover-bg")}>{s}</button>
           ))}
         </div>
       </div>
 
       {isLoading ? (
-        <div className="rounded-xl border border-white/[0.06] bg-card p-4"><TableSkeleton rows={6} /></div>
+        <div className="rounded-xl border border-border bg-card p-4"><TableSkeleton rows={6} /></div>
       ) : error ? (
         <ErrorState title="Failed to load leads" message={error} onRetry={refresh} />
       ) : filtered.length === 0 ? (
@@ -244,11 +244,11 @@ export default function LeadsPage() {
         />
       ) : (
         <>
-          <div className="hidden overflow-hidden rounded-xl border border-white/[0.06] bg-card md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
             <div className="overflow-x-auto scrollbar-thin">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/[0.04]">
+                  <tr className="border-b border-border/40">
                     {["Lead", "Contact", "Source", "Course", "Status", "Follow-up", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">{h}</th>
                     ))}
@@ -257,13 +257,13 @@ export default function LeadsPage() {
                 <tbody>
                   {filtered.map((lead, i) => (
                     <motion.tr key={lead["Lead ID"] || i} custom={i} variants={tableRowVariants} initial="hidden" animate="visible"
-                      className="group cursor-pointer border-b border-white/[0.04] transition-all duration-200 hover:bg-white/[0.03]"
+                      className="group cursor-pointer border-b border-border/40 transition-all duration-200 hover:bg-card-hover-bg"
                       onClick={() => handleView(lead)} tabIndex={0} role="button" aria-label={`View details for ${lead["Lead Name"]}`}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(lead); }}
                     >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04] transition-all group-hover:bg-white/[0.08]"><User className="h-4 w-4 text-muted-foreground" /></div>
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card-hover-bg transition-all group-hover:bg-card-hover-bg"><User className="h-4 w-4 text-muted-foreground" /></div>
                           <p className="font-medium text-foreground">{lead["Lead Name"]}</p>
                         </div>
                       </td>
@@ -279,7 +279,7 @@ export default function LeadsPage() {
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon-sm" className="opacity-0 transition-opacity group-hover:opacity-100" aria-label="Lead actions"><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-40 border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
+                          <DropdownMenuContent align="end" className="w-40 border-border bg-popover/95 backdrop-blur-xl">
                             <DropdownMenuItem onClick={() => handleEdit(lead)}><Pencil className="h-3.5 w-3.5" /> Edit</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleView(lead)}><ExternalLink className="h-3.5 w-3.5" /> View Details</DropdownMenuItem>
                             <DropdownMenuSeparator />
@@ -297,13 +297,13 @@ export default function LeadsPage() {
           <div className="grid gap-3 md:hidden">
             {filtered.map((lead, i) => (
               <motion.div key={lead["Lead ID"] || i} custom={i} variants={tableRowVariants} initial="hidden" animate="visible"
-                className="cursor-pointer rounded-xl border border-white/[0.06] bg-card p-4 transition-all duration-200 hover:bg-white/[0.03]"
+                className="cursor-pointer rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:bg-card-hover-bg"
                 onClick={() => handleView(lead)} tabIndex={0} role="button"
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(lead); }}
               >
                 <div className="mb-3 flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04]"><User className="h-4 w-4 text-muted-foreground" /></div>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card-hover-bg"><User className="h-4 w-4 text-muted-foreground" /></div>
                     <div><p className="font-medium text-foreground">{lead["Lead Name"]}</p><p className="text-xs text-muted-foreground/60">{lead.Contact}</p></div>
                   </div>
                   <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium", getStatusColor(lead.Status.toLowerCase()))}>{lead.Status}</span>
@@ -312,7 +312,7 @@ export default function LeadsPage() {
                   <SourceBadge source={lead.Source} />
                   <span>{lead["Interested Course"]}</span>
                 </div>
-                <div className="mt-3 flex items-center gap-2 border-t border-white/[0.04] pt-3">
+                <div className="mt-3 flex items-center gap-2 border-t border-border/40 pt-3">
                   <Button variant="ghost" size="xs" className="gap-1 text-muted-foreground" onClick={(e) => { e.stopPropagation(); handleEdit(lead); }}><Pencil className="h-3 w-3" />Edit</Button>
                   <Button variant="ghost" size="xs" className="gap-1 text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(lead); }}><Trash2 className="h-3 w-3" />Delete</Button>
                 </div>

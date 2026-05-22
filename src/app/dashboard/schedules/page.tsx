@@ -250,7 +250,7 @@ function ScheduleDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <SheetContent className="w-full border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-lg">
+      <SheetContent className="w-full border-border bg-popover/95 backdrop-blur-xl sm:max-w-lg">
         <SheetHeader className="pb-0">
           <div className="flex items-start gap-4">
             <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border", style.bg.replace("text-", "").replace("border-", ""))}>
@@ -269,7 +269,7 @@ function ScheduleDetailDrawer({
           </div>
           <SheetDescription className="mt-3 text-sm text-muted-foreground/70 line-clamp-2">{schedule.Notes || "No notes available."}</SheetDescription>
         </SheetHeader>
-        <Separator className="my-4 bg-white/[0.06]" />
+        <Separator className="my-4 bg-border" />
 
         <div className="space-y-5 px-4 pb-8 overflow-y-auto scrollbar-thin">
           {/* Overview grid */}
@@ -280,7 +280,7 @@ function ScheduleDetailDrawer({
               { icon: Clock, label: "End Time", value: schedule["End Time"] || "—" },
               { icon: Timer, label: "Duration", value: schedule["Duration"] || "—" },
             ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5">
+              <div key={label} className="rounded-xl border border-border bg-card-hover-bg p-3.5">
                 <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
                   <Icon className="h-3 w-3" />
                   {label}
@@ -304,7 +304,7 @@ function ScheduleDetailDrawer({
                 { label: "Last Updated", value: schedule["Last Updated Timestamp (IST)"] },
               ].filter((t) => t.value).map(({ label, value }, i) => (
                 <div key={label} className={cn(
-                  "relative flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] px-3.5 py-2.5",
+                  "relative flex items-center justify-between rounded-lg border border-border bg-card-hover-bg px-3.5 py-2.5",
                   i > 0 && "border-t-0 rounded-t-none"
                 )}>
                   <span className="text-xs text-muted-foreground/60">{label}</span>
@@ -320,17 +320,17 @@ function ScheduleDetailDrawer({
               <FileText className="h-3 w-3" />
               Session Notes
             </h4>
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5">
+            <div className="rounded-xl border border-border bg-card-hover-bg p-3.5">
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{schedule.Notes || "No notes for this session."}</p>
             </div>
           </div>
 
           {/* Actions */}
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm" className="flex-1 gap-1.5 border-white/[0.08]" onClick={() => { onEdit(schedule); onClose(); }}>
+            <Button variant="outline" size="sm" className="flex-1 gap-1.5 border-border" onClick={() => { onEdit(schedule); onClose(); }}>
               <Pencil className="h-3.5 w-3.5" /> Edit
             </Button>
-            <Button variant="outline" size="sm" className="flex-1 gap-1.5 border-white/[0.08] text-rose-400 hover:text-rose-300" onClick={() => { onDelete(schedule); onClose(); }}>
+            <Button variant="outline" size="sm" className="flex-1 gap-1.5 border-border text-rose-400 hover:text-rose-300" onClick={() => { onDelete(schedule); onClose(); }}>
               <Trash2 className="h-3.5 w-3.5" /> Delete
             </Button>
           </div>
@@ -348,7 +348,7 @@ function TimelineGroup({ label, count, icon: Icon, color }: { label: string; cou
       <Icon className={cn("h-3.5 w-3.5", color)} />
       <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">{label}</span>
       <span className="text-[10px] text-muted-foreground/30">({count})</span>
-      <Separator className="flex-1 bg-white/[0.04]" />
+      <Separator className="flex-1 bg-border/50" />
     </div>
   );
 }
@@ -468,14 +468,14 @@ export default function SchedulesPage() {
         ].map(({ icon: Icon, label, value, desc, trend, trendUp }, i) => (
           <motion.div key={label} custom={i} variants={statCardVariants}>
             <Card className={cn(
-              "relative overflow-hidden border-white/[0.06] bg-card shadow-none transition-all duration-300 hover:scale-[1.02]",
+              "relative overflow-hidden border-border bg-card shadow-none transition-all duration-300 hover:scale-[1.02]",
               GRADIENT_CARDS[i].border
             )}>
               <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30", GRADIENT_CARDS[i].from, GRADIENT_CARDS[i].via)} />
               <CardContent className="relative flex items-start gap-4 p-4">
                 <div className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06]",
-                  i === 1 && stats.running > 0 ? "bg-emerald-500/10" : "bg-white/[0.04]"
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border",
+                  i === 1 && stats.running > 0 ? "bg-emerald-500/10" : "bg-card-hover-bg"
                 )}>
                   <Icon className={cn("h-4.5 w-4.5", i === 1 && stats.running > 0 ? "text-emerald-400" : "text-muted-foreground")} />
                 </div>
@@ -505,7 +505,7 @@ export default function SchedulesPage() {
           <p className="mt-1 text-sm text-muted-foreground/70">Manage training sessions, time blocks, and live operations.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.03] p-0.5">
+          <div className="flex overflow-hidden rounded-lg border border-border bg-card-hover-bg p-0.5">
             <button
               onClick={() => setViewMode("table")}
               className={cn("rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all", viewMode === "table" ? "bg-accent-soft text-accent-base shadow-sm" : "text-muted-foreground/50 hover:text-muted-foreground")}
@@ -520,10 +520,10 @@ export default function SchedulesPage() {
             </button>
           </div>
           <Dialog open={isBulkDialogOpen} onOpenChange={setIsBulkDialogOpen}>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 border-white/[0.08] text-xs" onClick={() => setIsBulkDialogOpen(true)}>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 border-border text-xs" onClick={() => setIsBulkDialogOpen(true)}>
               <Layers className="h-3.5 w-3.5" /> Bulk
             </Button>
-            <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[500px]">
+            <DialogContent className="border-border bg-popover/95 backdrop-blur-xl sm:max-w-[500px]">
               <DialogHeader><DialogTitle>Bulk Create Schedules</DialogTitle><DialogDescription>Create multiple batches at once with a shared date and time.</DialogDescription></DialogHeader>
               <BulkScheduleForm onSave={handleBulkSave} isSubmitting={isBulkSubmitting} />
             </DialogContent>
@@ -532,7 +532,7 @@ export default function SchedulesPage() {
             <Button size="sm" className="h-9 gap-1.5 text-xs" onClick={() => setIsDialogOpen(true)}>
               <Plus className="h-3.5 w-3.5" /> Add Schedule
             </Button>
-            <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[600px]">
+            <DialogContent className="border-border bg-popover/95 backdrop-blur-xl sm:max-w-[600px]">
               <DialogHeader><DialogTitle>{editingSchedule ? "Edit Schedule" : "Add New Schedule"}</DialogTitle></DialogHeader>
               <ScheduleForm initialData={editingSchedule} onSave={handleSave} />
             </DialogContent>
@@ -556,7 +556,7 @@ export default function SchedulesPage() {
             onClick={() => setStatusFilter("all")}
             className={cn(
               "rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-200",
-              statusFilter === "all" ? "bg-accent-soft text-accent-base shadow-sm" : "text-muted-foreground/50 hover:bg-white/[0.04] hover:text-muted-foreground"
+              statusFilter === "all" ? "bg-accent-soft text-accent-base shadow-sm" : "text-muted-foreground/50 hover:bg-card-hover-bg hover:text-muted-foreground"
             )}
           >
             All
@@ -571,7 +571,7 @@ export default function SchedulesPage() {
                   "rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-200",
                   statusFilter === s
                     ? cn(style.bg, "shadow-sm")
-                    : "text-muted-foreground/50 hover:bg-white/[0.04] hover:text-muted-foreground"
+                    : "text-muted-foreground/50 hover:bg-card-hover-bg hover:text-muted-foreground"
                 )}
               >
                 {s}
@@ -583,7 +583,7 @@ export default function SchedulesPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="rounded-xl border border-white/[0.06] bg-card p-4"><TableSkeleton rows={6} /></div>
+        <div className="rounded-xl border border-border bg-card p-4"><TableSkeleton rows={6} /></div>
       ) : error ? (
         <ErrorState title="Failed to load schedules" message={error} onRetry={refresh} />
       ) : sorted.length === 0 ? (
@@ -623,7 +623,7 @@ export default function SchedulesPage() {
                         transition={{ delay: i * 0.04 }}
                         className={cn(
                           "group cursor-pointer rounded-xl border bg-card p-4 transition-all duration-200 hover:scale-[1.01]",
-                          isRunning ? "border-emerald-500/30 shadow-[0_0_20px_-6px_rgba(52,211,153,0.2)]" : "border-white/[0.06] hover:border-white/[0.12] hover:bg-[#151520]"
+                          isRunning ? "border-emerald-500/30 shadow-[0_0_20px_-6px_rgba(52,211,153,0.2)]" : "border-border hover:border-card-hover-bg hover:bg-card-raised"
                         )}
                         onClick={() => handleView(schedule)}
                         tabIndex={0}
@@ -633,7 +633,7 @@ export default function SchedulesPage() {
                       >
                         <div className="mb-3 flex items-start justify-between">
                           <div className="flex items-center gap-2.5">
-                            <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg border", isRunning ? "border-emerald-500/20 bg-emerald-500/10" : "border-white/[0.06] bg-white/[0.04]")}>
+                            <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg border", isRunning ? "border-emerald-500/20 bg-emerald-500/10" : "border-border bg-card-hover-bg")}>
                               {isRunning ? (
                                 <span className="relative flex h-3 w-3">
                                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -682,11 +682,11 @@ export default function SchedulesPage() {
         /* ─── TABLE VIEW ──────────────────────────────── */
         <>
           {/* Desktop Table */}
-          <div className="hidden overflow-hidden rounded-xl border border-white/[0.06] bg-card md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
             <div className="overflow-x-auto scrollbar-thin">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/[0.04]">
+                  <tr className="border-b border-border/40">
                     {["Session", "Date & Time", "Status", "Duration", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">{h}</th>
                     ))}
@@ -706,8 +706,8 @@ export default function SchedulesPage() {
                         initial="hidden"
                         animate="visible"
                         className={cn(
-                          "group cursor-pointer border-b border-white/[0.04] transition-all duration-200",
-                          isRunning ? "bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05]" : "hover:bg-white/[0.03]"
+                          "group cursor-pointer border-b border-border/40 transition-all duration-200",
+                          isRunning ? "bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05]" : "hover:bg-card-hover-bg"
                         )}
                         onClick={() => handleView(schedule)}
                         tabIndex={0}
@@ -719,7 +719,7 @@ export default function SchedulesPage() {
                           <div className="flex items-center gap-3">
                             <div className={cn(
                               "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-all",
-                              isRunning ? "border-emerald-500/20 bg-emerald-500/10" : "border-white/[0.06] bg-white/[0.04] group-hover:bg-white/[0.08]"
+                              isRunning ? "border-emerald-500/20 bg-emerald-500/10" : "border-border bg-card-hover-bg group-hover:bg-card-hover-bg"
                             )}>
                               {isRunning ? (
                                 <span className="relative flex h-3 w-3">
@@ -767,7 +767,7 @@ export default function SchedulesPage() {
                         <td className="px-4 py-4"><StatusBadge status={schedule.Status} /></td>
                         <td className="hidden px-4 py-4 sm:table-cell">
                           {schedule.Duration ? (
-                            <span className="inline-flex items-center gap-1 rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-1 text-[11px] font-medium text-muted-foreground">
+                            <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card-hover-bg px-2 py-1 text-[11px] font-medium text-muted-foreground">
                               <Timer className="h-3 w-3" />
                               {schedule.Duration}
                             </span>
@@ -782,7 +782,7 @@ export default function SchedulesPage() {
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40 border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
+                            <DropdownMenuContent align="end" className="w-40 border-border bg-popover/95 backdrop-blur-xl">
                               <DropdownMenuItem onClick={() => handleView(schedule)}>
                                 <ExternalLink className="h-3.5 w-3.5" /> View Details
                               </DropdownMenuItem>
@@ -820,7 +820,7 @@ export default function SchedulesPage() {
                   animate="visible"
                   className={cn(
                     "cursor-pointer rounded-xl border p-4 transition-all duration-200",
-                    isRunning ? "border-emerald-500/30 bg-card shadow-[0_0_20px_-6px_rgba(52,211,153,0.15)]" : "border-white/[0.06] bg-card hover:bg-white/[0.03]"
+                    isRunning ? "border-emerald-500/30 bg-card shadow-[0_0_20px_-6px_rgba(52,211,153,0.15)]" : "border-border bg-card hover:bg-card-hover-bg"
                   )}
                   onClick={() => handleView(schedule)}
                   tabIndex={0}
@@ -829,7 +829,7 @@ export default function SchedulesPage() {
                 >
                   <div className="mb-3 flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg border", isRunning ? "border-emerald-500/20 bg-emerald-500/10" : "border-white/[0.06] bg-white/[0.04]")}>
+                      <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg border", isRunning ? "border-emerald-500/20 bg-emerald-500/10" : "border-border bg-card-hover-bg")}>
                         {isRunning ? (
                           <span className="relative flex h-2.5 w-2.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" /></span>
                         ) : (
@@ -852,7 +852,7 @@ export default function SchedulesPage() {
                       <span className="flex items-center gap-1"><Timer className="h-3 w-3" />{schedule.Duration}</span>
                     )}
                   </div>
-                  <div className="mt-3 flex items-center gap-2 border-t border-white/[0.04] pt-3">
+                  <div className="mt-3 flex items-center gap-2 border-t border-border/40 pt-3">
                     <Button variant="ghost" size="xs" className="gap-1 text-muted-foreground" onClick={(e) => { e.stopPropagation(); handleEdit(schedule); }}><Pencil className="h-3 w-3" />Edit</Button>
                     <Button variant="ghost" size="xs" className="gap-1 text-rose-400" onClick={(e) => { e.stopPropagation(); handleDelete(schedule); }}><Trash2 className="h-3 w-3" />Delete</Button>
                   </div>

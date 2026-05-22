@@ -86,7 +86,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm md:hidden"
             onClick={onClose}
           />
         )}

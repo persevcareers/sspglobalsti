@@ -17,7 +17,7 @@ const FIXED_COLORS = ["#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#e
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-xl border border-white/[0.12] bg-[#151520]/95 px-3.5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_color-mix(in srgb,var(--accent-base) 10%,transparent)] backdrop-blur-xl">
+      <div className="rounded-xl border border-border bg-chart-tooltip-bg px-3.5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_color-mix(in srgb,var(--accent-base) 10%,transparent)] backdrop-blur-xl">
         <p className="text-[11px] font-medium text-foreground">{payload[0].name}</p>
         <p className="text-sm font-bold text-accent-base">{payload[0].value} ({Math.round((payload[0].payload?.value || 0) / (payload[0].payload?.total || 1) * 100)}%)</p>
       </div>
@@ -53,7 +53,7 @@ export function PieChart({ title, data, className }: PieChartProps) {
   const enriched = data.map((d) => ({ ...d, total }));
 
   return (
-    <Card className={cn("border-white/[0.06]", className)}>
+    <Card className={cn("border-border", className)}>
       <CardHeader className="pb-0">
         <CardTitle className="text-sm font-medium text-foreground">{title}</CardTitle>
       </CardHeader>

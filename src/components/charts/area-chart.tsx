@@ -22,7 +22,7 @@ interface AreaChartProps {
 function CustomTooltipContent({ active, payload, label }: any) {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-xl border border-white/[0.12] bg-[#151520]/95 px-3.5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_color-mix(in srgb,var(--accent-base) 10%,transparent)] backdrop-blur-xl">
+      <div className="rounded-xl border border-border bg-chart-tooltip-bg px-3.5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_color-mix(in srgb,var(--accent-base) 10%,transparent)] backdrop-blur-xl">
         <p className="text-[11px] font-medium text-foreground">{label}</p>
         <p className="text-sm font-bold text-accent-base">{payload[0].value} students</p>
       </div>
@@ -35,7 +35,7 @@ export function AreaChart({ title, data, className }: AreaChartProps) {
   const { accentPalette } = useAccentTheme();
   const accent = accentPalette.base;
   return (
-    <Card className={cn("border-white/[0.06]", className)}>
+    <Card className={cn("border-border", className)}>
       <CardHeader className="pb-0">
         <CardTitle className="text-sm font-medium text-foreground">{title}</CardTitle>
       </CardHeader>
@@ -50,15 +50,15 @@ export function AreaChart({ title, data, className }: AreaChartProps) {
                   <stop offset="95%" stopColor={accent} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
               <XAxis
                 dataKey="month"
-                tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }}
+                tick={{ fill: "var(--chart-text)", fontSize: 11 }}
                 tickLine={false}
-                axisLine={{ stroke: "rgba(255,255,255,0.06)" }}
+                axisLine={{ stroke: "var(--chart-axis)" }}
               />
               <YAxis
-                tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }}
+                tick={{ fill: "var(--chart-text)", fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
                 width={35}
@@ -70,7 +70,7 @@ export function AreaChart({ title, data, className }: AreaChartProps) {
                 stroke={accent}
                 strokeWidth={2.5}
                 fill="url(#areaGrad)"
-                activeDot={{ r: 5, fill: accent, stroke: "#151520", strokeWidth: 2 }}
+                activeDot={{ r: 5, fill: accent, stroke: "var(--background)", strokeWidth: 2 }}
               />
             </RechartsAreaChart>
           </ResponsiveContainer>

@@ -63,12 +63,12 @@ export default function DashboardPage() {
           ].map(({ icon: Icon, label, value, desc, trend, trendUp }, i) => (
             <motion.div key={label} custom={i} variants={statCardVariants}>
               <Card className={cn(
-                "relative overflow-hidden border-white/[0.06] bg-card shadow-none transition-all duration-300 hover:scale-[1.02]",
+                "relative overflow-hidden border-border bg-card shadow-none transition-all duration-300 hover:scale-[1.02]",
                 GRADIENT_CARDS[i].border
               )}>
                 <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30", GRADIENT_CARDS[i].from, GRADIENT_CARDS[i].via)} />
                 <CardContent className="relative flex items-start gap-4 p-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card-hover-bg">
                     <Icon className="h-4.5 w-4.5 text-muted-foreground" />
                   </div>
                   <div className="flex-1">
@@ -93,7 +93,7 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         {settings.showCharts && (
-          <div className={cn("rounded-xl border border-white/[0.06] bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)] transition-all duration-300 hover:border-white/[0.10] hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)]", settings.showOnlineUsers ? "lg:col-span-4" : "lg:col-span-7")}>
+          <div className={cn("rounded-xl border border-border bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.15)] transition-all duration-300 hover:border-border hover:shadow-[0_8px_40px_-6px_rgba(99,102,241,0.08)]", settings.showOnlineUsers ? "lg:col-span-4" : "lg:col-span-7")}>
             <AreaChart title="Student Enrollments" data={studentGrowthData} className="border-0 shadow-none bg-transparent" />
           </div>
         )}
@@ -106,7 +106,7 @@ export default function DashboardPage() {
 
       {settings.showCharts && (
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <div className="rounded-xl border border-white/[0.06] bg-card p-0 lg:col-span-7">
+          <div className="rounded-xl border border-border bg-card p-0 lg:col-span-7">
             <BarChart title="Batch Progress" data={batchProgressData} className="border-0 shadow-none bg-transparent" />
           </div>
         </div>

@@ -37,6 +37,14 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-surface: var(--surface);
+  --color-card-raised: var(--card-raised);
+  --color-card-hover-bg: var(--card-hover-bg);
+  --color-border-subtle: var(--border-subtle);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-text: var(--chart-text);
+  --color-chart-axis: var(--chart-axis);
+  --color-chart-tooltip-bg: var(--chart-tooltip-bg);
+  --color-chart-cursor: var(--chart-cursor);
 
   /* ─── Dynamic accent color tokens ─────── */
   --color-accent-base: var(--accent-base);
@@ -76,6 +84,7 @@
 
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.92 0.004 286.32);
+  --border-subtle: oklch(0 0 0 / 8%);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.705 0.015 286.067);
   --chart-1: oklch(0.871 0.006 286.286);
@@ -83,6 +92,11 @@
   --chart-3: oklch(0.442 0.017 285.786);
   --chart-4: oklch(0.37 0.013 285.805);
   --chart-5: oklch(0.274 0.006 286.033);
+  --chart-grid: rgba(0, 0, 0, 0.06);
+  --chart-text: rgba(0, 0, 0, 0.35);
+  --chart-axis: rgba(0, 0, 0, 0.08);
+  --chart-tooltip-bg: rgba(255, 255, 255, 0.95);
+  --chart-cursor: rgba(0, 0, 0, 0.04);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
@@ -95,6 +109,9 @@
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
   --surface: oklch(0.985 0 0);
+  --card-raised: oklch(0.96 0.004 286);
+  --card-hover-bg: rgba(0, 0, 0, 0.03);
+  --card-hover-border: rgba(0, 0, 0, 0.12);
 }
 
 .dark {
@@ -123,6 +140,7 @@
 
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 8%);
+  --border-subtle: oklch(1 0 0 / 6%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.55 0.016 285.938);
   --chart-1: oklch(0.646 0.222 264.376);
@@ -130,6 +148,11 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.585 0.233 277.117);
+  --chart-grid: rgba(255, 255, 255, 0.04);
+  --chart-text: rgba(255, 255, 255, 0.3);
+  --chart-axis: rgba(255, 255, 255, 0.06);
+  --chart-tooltip-bg: rgba(21, 21, 32, 0.95);
+  --chart-cursor: rgba(255, 255, 255, 0.03);
   --sidebar: oklch(0.14 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -139,6 +162,9 @@
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
   --surface: oklch(0.13 0.006 285.823);
+  --card-raised: oklch(0.16 0.006 285.885);
+  --card-hover-bg: rgba(255, 255, 255, 0.03);
+  --card-hover-border: rgba(255, 255, 255, 0.12);
 }
 
 @layer base {
@@ -202,27 +228,27 @@
   }
 }
 
-/* ─── FullCalendar Premium Dark Theme ─────────────────────────── */
+/* ─── FullCalendar Theme ─────────────────────────── */
 .calendar-premium {
-  --fc-border-color: rgba(255, 255, 255, 0.06);
-  --fc-button-text-color: #e2e8f0;
+  --fc-border-color: var(--border-subtle);
+  --fc-button-text-color: var(--foreground);
   --fc-button-bg-color: transparent;
-  --fc-button-border-color: rgba(255, 255, 255, 0.08);
-  --fc-button-hover-bg-color: rgba(255, 255, 255, 0.06);
-  --fc-button-hover-border-color: rgba(255, 255, 255, 0.12);
+  --fc-button-border-color: var(--border-subtle);
+  --fc-button-hover-bg-color: var(--card-hover-bg);
+  --fc-button-hover-border-color: var(--card-hover-border);
   --fc-button-active-bg-color: color-mix(in srgb, var(--accent-base) 12%, transparent);
   --fc-button-active-border-color: color-mix(in srgb, var(--accent-base) 30%, transparent);
   --fc-today-bg-color: color-mix(in srgb, var(--accent-base) 6%, transparent);
   --fc-neutral-bg-color: transparent;
-  --fc-neutral-text-color: rgba(255, 255, 255, 0.4);
+  --fc-neutral-text-color: var(--muted-foreground);
   --fc-page-bg-color: transparent;
   --fc-event-bg-color: var(--accent-base);
   --fc-event-border-color: var(--accent-base);
   --fc-event-text-color: #fff;
   --fc-event-selected-overlay-color: rgba(0, 0, 0, 0.3);
-  --fc-more-link-bg-color: rgba(255, 255, 255, 0.04);
-  --fc-more-link-text-color: rgba(255, 255, 255, 0.6);
-  --fc-non-business-color: rgba(255, 255, 255, 0.02);
+  --fc-more-link-bg-color: var(--card-hover-bg);
+  --fc-more-link-text-color: var(--muted-foreground);
+  --fc-non-business-color: var(--border-subtle);
   --fc-bg-event-color: color-mix(in srgb, var(--accent-base) 8%, transparent);
   --fc-highlight-color: color-mix(in srgb, var(--accent-base) 8%, transparent);
 }
@@ -242,7 +268,7 @@
 
 .calendar-premium .fc-col-header-cell {
   padding: 8px 0;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--card-hover-bg);
 }
 
 .calendar-premium .fc-col-header-cell-cushion {
@@ -250,19 +276,19 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--muted-foreground);
   padding: 0;
 }
 
 .calendar-premium .fc-daygrid-day-number {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--muted-foreground);
   padding: 6px 8px;
 }
 
 .calendar-premium .fc-day-today .fc-daygrid-day-number {
-  color: #818cf8;
+  color: var(--accent-base);
   font-weight: 700;
 }
 
@@ -285,7 +311,7 @@
 
 .calendar-premium .fc-event:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--border-subtle);
   z-index: 5;
 }
 
@@ -304,7 +330,7 @@
 
 .calendar-premium .fc-timegrid-slot-label {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--muted-foreground);
   vertical-align: middle;
 }
 
@@ -313,19 +339,19 @@
 }
 
 .calendar-premium .fc-timegrid-now-indicator-line {
-  border-color: #10b981;
+  border-color: var(--accent-base);
   border-width: 2px;
 }
 
 .calendar-premium .fc-timegrid-now-indicator-arrow {
-  border-color: #10b981;
-  color: #10b981;
+  border-color: var(--accent-base);
+  color: var(--accent-base);
 }
 
 .calendar-premium .fc-more-link {
   font-size: 10px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--muted-foreground);
   padding: 2px 4px;
   border-radius: 4px;
 }
@@ -335,22 +361,22 @@
 }
 
 .calendar-premium .fc-list-day-cushion {
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: var(--card-hover-bg) !important;
   padding: 10px 14px;
 }
 
 .calendar-premium .fc-list-day-text,
 .calendar-premium .fc-list-day-side-text {
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--foreground);
 }
 
 .calendar-premium .fc-list-table td {
-  border-color: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-subtle);
 }
 
 .calendar-premium .fc-list-event:hover td {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--card-hover-bg);
 }
 
 .calendar-premium .fc-list-event-dot {
@@ -358,14 +384,14 @@
 }
 
 .calendar-premium .fc-popover {
-  background: #111118;
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--popover);
+  border-color: var(--border);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .calendar-premium .fc-popover-header {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--card-hover-bg);
   padding: 8px 12px;
   font-size: 12px;
 }
@@ -375,7 +401,7 @@
 }
 
 .calendar-premium .fc-daygrid-more-link {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: var(--muted-foreground) !important;
 }
 
 /* ─── Smooth accent color transitions ──── */

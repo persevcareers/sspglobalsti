@@ -110,7 +110,7 @@ export default function BatchesPage() {
       label: "Batch",
       render: (b) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04] text-xs font-bold text-muted-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card-hover-bg text-xs font-bold text-muted-foreground">
             {b["Batch Name"]?.charAt(0) || "B"}
           </div>
           <div>
@@ -160,7 +160,7 @@ export default function BatchesPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon-sm" className="opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4" /></Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36 border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
+          <DropdownMenuContent align="end" className="w-36 border-border bg-popover/95 backdrop-blur-xl">
             <DropdownMenuItem onClick={() => { setEditingBatch(b); setIsDialogOpen(true); }}><Pencil className="mr-2 h-3.5 w-3.5" /> Edit</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteTarget(b)}><Trash2 className="mr-2 h-3.5 w-3.5" /> Delete</DropdownMenuItem>
@@ -180,9 +180,9 @@ export default function BatchesPage() {
           { icon: CheckCircle2, label: "Completed", value: stats.completed, desc: "Finished" },
         ].map(({ icon: Icon, label, value, desc }, i) => (
           <motion.div key={label} custom={i} variants={statCardVariants}>
-            <Card className="border-white/[0.06] bg-card shadow-none transition-all duration-200 hover:border-white/[0.10]">
+            <Card className="border-border bg-card shadow-none transition-all duration-200 hover:border-border">
               <CardContent className="flex items-start gap-4 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card-hover-bg">
                   <Icon className="h-4.5 w-4.5 text-muted-foreground" />
                 </div>
                 <div>
@@ -202,7 +202,7 @@ export default function BatchesPage() {
           <p className="mt-0.5 text-sm text-muted-foreground/70">Manage training batches, schedules, trainers, and progress.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 gap-1.5 border-white/[0.08]">
+          <Button variant="outline" size="sm" className="h-9 gap-1.5 border-border">
             <Download className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Export</span>
           </Button>
@@ -212,7 +212,7 @@ export default function BatchesPage() {
               <span className="hidden sm:inline">Add Batch</span>
               <span className="sm:hidden">Add</span>
             </Button>
-            <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[500px]">
+            <DialogContent className="border-border bg-popover/95 backdrop-blur-xl sm:max-w-[500px]">
               <DialogHeader><DialogTitle>{editingBatch ? "Edit Batch" : "Create Batch"}</DialogTitle></DialogHeader>
               <BatchForm initialData={editingBatch} onSave={handleSave} />
             </DialogContent>
@@ -222,10 +222,10 @@ export default function BatchesPage() {
 
       <div className="mb-6">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="h-9 w-36 border-white/[0.08] bg-white/[0.04]">
+          <SelectTrigger className="h-9 w-36 border-border bg-card-hover-bg">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
+          <SelectContent className="border-border bg-popover/95 backdrop-blur-xl">
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="Ongoing">Ongoing</SelectItem>
             <SelectItem value="Upcoming">Upcoming</SelectItem>
@@ -250,7 +250,7 @@ export default function BatchesPage() {
       />
 
       <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
-        <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[400px]">
+        <DialogContent className="border-border bg-popover/95 backdrop-blur-xl sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="h-5 w-5" /> Delete Batch</DialogTitle>
             <DialogDescription className="pt-2">

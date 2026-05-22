@@ -77,11 +77,11 @@ function ToggleSwitch({ label, description, checked: controlledChecked, onChange
           }
         }}
         className={cn(
-          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-white/[0.08] transition-colors duration-200",
-          checked ? "bg-accent-base" : "bg-white/[0.06]"
+          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-border transition-colors duration-200",
+          checked ? "bg-accent-base" : "bg-muted"
         )}
       >
-        <span className={cn("inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200", checked ? "translate-x-[22px]" : "translate-x-[3px]")} />
+        <span className={cn("inline-block h-4 w-4 transform rounded-full bg-background transition-transform duration-200", checked ? "translate-x-[22px]" : "translate-x-[3px]")} />
       </button>
     </div>
   );
@@ -89,7 +89,7 @@ function ToggleSwitch({ label, description, checked: controlledChecked, onChange
 
 function SettingCard({ title, description, children, className }: { title: string; description?: string; children: React.ReactNode; className?: string }) {
   return (
-    <Card className={cn("border-white/[0.06] bg-card shadow-none", className)}>
+    <Card className={cn("border-border bg-card shadow-none", className)}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base">{title}</CardTitle>
         {description && <CardDescription className="text-xs text-muted-foreground/60">{description}</CardDescription>}
@@ -117,7 +117,7 @@ function ThemeSelector() {
             "flex flex-col items-center gap-2 rounded-xl border p-4 transition-all duration-200",
             theme === id
               ? "border-accent-base/30 bg-accent-soft text-accent-base"
-              : "border-white/[0.06] bg-white/[0.03] text-muted-foreground hover:border-white/[0.10] hover:text-foreground"
+              : "border-border bg-card-hover-bg text-muted-foreground hover:border-card-hover-bg hover:text-foreground"
           )}
         >
           <Icon className="h-5 w-5" />
@@ -201,7 +201,7 @@ export default function SettingsPage() {
                   "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 whitespace-nowrap lg:w-full",
                   activeTab === id
                     ? "bg-accent-soft text-accent-base"
-                    : "text-muted-foreground/60 hover:bg-white/[0.04] hover:text-muted-foreground"
+                    : "text-muted-foreground/60 hover:bg-card-hover-bg hover:text-muted-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -217,7 +217,7 @@ export default function SettingsPage() {
               <SettingCard title="Account Details" description="View and manage your current user credentials through Clerk.">
                 <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
                   {user?.imageUrl && (
-                    <img src={user.imageUrl} alt="User Avatar" className="h-16 w-16 rounded-xl border border-white/[0.06] object-cover" />
+                    <img src={user.imageUrl} alt="User Avatar" className="h-16 w-16 rounded-xl border border-border object-cover" />
                   )}
                   <div>
                     <h3 className="text-lg font-medium text-foreground">{user?.fullName || "User Account"}</h3>
@@ -250,7 +250,7 @@ export default function SettingsPage() {
                     { device: "Safari on iPhone", ip: "198.51.100.7", time: "2 hours ago", current: false },
                     { device: "Firefox on macOS", ip: "192.0.2.15", time: "Yesterday at 3:42 PM", current: false },
                   ].map(({ device, ip, time, current }) => (
-                    <div key={device} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+                    <div key={device} className="flex items-center justify-between rounded-lg border border-border bg-card-hover-bg p-3">
                       <div className="flex items-center gap-3">
                         <Smartphone className="h-4 w-4 text-muted-foreground" />
                         <div>
@@ -308,11 +308,11 @@ export default function SettingsPage() {
               <SettingCard title="Layout Preferences" description="Configure how data is displayed across the platform.">
                 <div className="space-y-4">
                   <ToggleSwitch label="Compact Mode" description="Use denser layouts for tables and cards" checked={settings.compactMode} onChange={(v) => updateSetting("compactMode", v)} />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Reduced Motion" description="Disable animations for better performance" checked={settings.reducedMotion} onChange={(v) => updateSetting("reducedMotion", v)} />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Show Weekend Schedules" description="Display Saturday and Sunday schedules" checked={settings.showWeekends} onChange={(v) => updateSetting("showWeekends", v)} />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Collapsed Sidebar" description="Start with sidebar collapsed by default" checked={settings.collapsedSidebar} onChange={(v) => updateSetting("collapsedSidebar", v)} />
                 </div>
               </SettingCard>
@@ -320,11 +320,11 @@ export default function SettingsPage() {
               <SettingCard title="Dashboard Widgets" description="Choose which widgets appear on your dashboard.">
                 <div className="space-y-4">
                   <ToggleSwitch label="Stat Cards" description="Show summary statistics at the top" checked={settings.showStatCards} onChange={(v) => updateSetting("showStatCards", v)} />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Charts" description="Display enrollment and progress charts" checked={settings.showCharts} onChange={(v) => updateSetting("showCharts", v)} />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Online Users" description="Show active user count" checked={settings.showOnlineUsers} onChange={(v) => updateSetting("showOnlineUsers", v)} />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Recent Activity" description="Display recent platform activity" checked={settings.showRecentActivity} onChange={(v) => updateSetting("showRecentActivity", v)} />
                 </div>
               </SettingCard>
@@ -336,9 +336,9 @@ export default function SettingsPage() {
               <SettingCard title="Session Alerts" description="Control notifications about your account activity.">
                 <div className="space-y-4">
                   <ToggleSwitch label="New Login Alerts" description="Get notified when you log in from a new device" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Session Timeout" description="Alert when your session is about to expire" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Security Events" description="Notify on password changes and security updates" defaultChecked />
                 </div>
               </SettingCard>
@@ -346,11 +346,11 @@ export default function SettingsPage() {
               <SettingCard title="Schedule Notifications" description="Manage schedule-related alerts.">
                 <div className="space-y-4">
                   <ToggleSwitch label="Upcoming Sessions" description="Remind me before scheduled sessions start" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Schedule Changes" description="Notify when schedules are modified" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Attendance Alerts" description="Get notified on student attendance updates" />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Daily Digest" description="Receive a summary of daily activity" />
                 </div>
               </SettingCard>
@@ -358,9 +358,9 @@ export default function SettingsPage() {
               <SettingCard title="Email Preferences" description="Control which emails you receive.">
                 <div className="space-y-4">
                   <ToggleSwitch label="New Lead Alerts" description="Get emailed when a new lead is captured" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Student Enrollment" description="Receive emails when students enroll" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Weekly Report" description="Weekly summary of all activity" />
                 </div>
               </SettingCard>
@@ -378,13 +378,13 @@ export default function SettingsPage() {
                     </div>
                     <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px]">Active</Badge>
                   </div>
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-foreground">Multi-factor Authentication</p>
                       <p className="text-xs text-muted-foreground/60">Add an extra layer of security</p>
                     </div>
-                    <Button variant="outline" size="sm" className="h-8 gap-1.5 border-white/[0.08] text-xs">Configure</Button>
+                    <Button variant="outline" size="sm" className="h-8 gap-1.5 border-border text-xs">Configure</Button>
                   </div>
                 </div>
               </SettingCard>
@@ -401,13 +401,13 @@ export default function SettingsPage() {
                       Revoke All
                     </Button>
                   </div>
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   {[
                     { device: "Chrome on Windows", location: "Hyderabad, India", lastActive: "Active now" },
                     { device: "Safari on iPhone", location: "Hyderabad, India", lastActive: "2 hours ago" },
                     { device: "Firefox on macOS", location: "Mumbai, India", lastActive: "Yesterday" },
                   ].map(({ device, location, lastActive }) => (
-                    <div key={device} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5">
+                    <div key={device} className="flex items-center justify-between rounded-lg border border-border bg-card-hover-bg p-2.5">
                       <div className="flex items-center gap-2.5">
                         <Smartphone className="h-3.5 w-3.5 text-muted-foreground" />
                         <div>
@@ -424,9 +424,9 @@ export default function SettingsPage() {
               <SettingCard title="Security Policies" description="Configure security preferences.">
                 <div className="space-y-4">
                   <ToggleSwitch label="Idle Session Timeout" description="Automatically log out after 15 minutes of inactivity" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="Login Notifications" description="Email me when a new device logs in" defaultChecked />
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <ToggleSwitch label="IP Tracking" description="Log IP addresses for all login events" defaultChecked />
                 </div>
               </SettingCard>
@@ -459,7 +459,7 @@ export default function SettingsPage() {
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground/60">Primary Color</Label>
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg border border-white/[0.06]" style={{ backgroundColor: accentColors[accentColor].base }} />
+                        <div className="h-8 w-8 rounded-lg border border-border" style={{ backgroundColor: accentColors[accentColor].base }} />
                         <Input value={accentColors[accentColor].base} readOnly className={cn(INPUT_CLASS, "font-mono text-xs")} />
                       </div>
                     </div>
@@ -468,7 +468,7 @@ export default function SettingsPage() {
                       <Input placeholder="https://example.com/logo.png" className={INPUT_CLASS} />
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+                  <div className="flex items-center gap-3 rounded-lg border border-border bg-card-hover-bg p-3">
                     <Info className="h-4 w-4 text-muted-foreground" />
                     <p className="text-xs text-muted-foreground/60">Organization settings are stored locally and applied on page load.</p>
                   </div>
@@ -485,7 +485,7 @@ export default function SettingsPage() {
                     <Label className="text-xs text-muted-foreground/60">Web App URL</Label>
                     <Input value={process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL || "Not configured"} disabled className={cn(INPUT_CLASS, "font-mono text-xs cursor-not-allowed opacity-70")} />
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+                  <div className="flex items-center justify-between rounded-lg border border-border bg-card-hover-bg p-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Database className="h-4 w-4 text-accent-base" />
                       <span>Connection to Google Sheets backend.</span>
@@ -506,7 +506,7 @@ export default function SettingsPage() {
                     </div>
                     <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px]">Active</Badge>
                   </div>
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-foreground">Sync Status</p>
@@ -514,13 +514,13 @@ export default function SettingsPage() {
                     </div>
                     <Badge variant="outline" className="border-amber-500/20 bg-amber-500/10 text-amber-400 text-[10px]">Online</Badge>
                   </div>
-                  <Separator className="bg-white/[0.04]" />
+                  <Separator className="bg-border/30" />
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-foreground">Client Cache</p>
                       <p className="text-xs text-muted-foreground/60">Session storage & in-memory cache</p>
                     </div>
-                    <Button onClick={clearCache} disabled={clearingCache} variant="outline" size="sm" className="h-8 gap-1.5 border-white/[0.08] text-xs">
+                    <Button onClick={clearCache} disabled={clearingCache} variant="outline" size="sm" className="h-8 gap-1.5 border-border text-xs">
                       {clearingCache ? <><Loader2 className="h-3 w-3 animate-spin" /> Clearing</> : <><RefreshCw className="h-3 w-3" /> Clear Cache</>}
                     </Button>
                   </div>
@@ -536,7 +536,7 @@ export default function SettingsPage() {
                     { label: "Build Target", value: "Production" },
                     { label: "Data Store", value: "Google Sheets (via Apps Script)" },
                   ].map(({ label, value }) => (
-                    <div key={label} className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2">
+                    <div key={label} className="flex items-center justify-between rounded-lg bg-card-hover-bg px-3 py-2">
                       <span className="text-xs text-muted-foreground/60">{label}</span>
                       <span className="text-xs font-medium text-foreground">{value}</span>
                     </div>
@@ -559,7 +559,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="flex flex-wrap gap-1">
                           {permissions.filter((p) => p !== "ALL").map((perm) => (
-                            <span key={perm} className="inline-flex rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 text-[10px] font-medium text-muted-foreground/80">
+                            <span key={perm} className="inline-flex rounded-md border border-border bg-card-hover-bg px-2 py-0.5 text-[10px] font-medium text-muted-foreground/80">
                               {perm.replace(/_/g, " ")}
                             </span>
                           ))}

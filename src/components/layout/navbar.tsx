@@ -126,15 +126,15 @@ function NotificationGroup({
               if (unread) onRead(notif.notificationId);
               if (notif.actionUrl) window.location.href = notif.actionUrl;
             }}
-            className={`relative flex w-full items-start gap-3 px-3 py-2.5 text-left transition-all duration-200 hover:bg-white/[0.04] ${
-              unread ? "bg-white/[0.03]" : ""
+            className={`relative flex w-full items-start gap-3 px-3 py-2.5 text-left transition-all duration-200 hover:bg-card-hover-bg ${
+              unread ? "bg-card-hover-bg" : ""
             }`}
           >
             {unread && (
               <span className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-accent-base" style={{ boxShadow: "0 0 6px var(--accent-glow)" }} />
             )}
             <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-              unread ? "bg-white/[0.06]" : "bg-white/[0.03]"
+              unread ? "bg-card-hover-bg" : "bg-card-hover-bg"
             } ${catColor}`}>
               {getNotifCategoryIcon(notif.category)}
             </div>
@@ -233,10 +233,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.96 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="absolute right-0 z-50 mt-2 w-[420px] origin-top-right overflow-hidden rounded-2xl border border-white/[0.06] bg-[#111118]/95 shadow-2xl shadow-black/40 backdrop-blur-xl md:w-[440px]"
+                className="absolute right-0 z-50 mt-2 w-[420px] origin-top-right overflow-hidden rounded-2xl border border-border bg-popover/95 shadow-2xl shadow-black/40 backdrop-blur-xl md:w-[440px]"
                 style={{ maxHeight: "min(500px, calc(100vh - 100px))" }}
               >
-                <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-foreground">Notifications</span>
                     {unreadCount > 0 && (
@@ -274,7 +274,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                       animate={{ opacity: 1 }}
                       className="flex flex-col items-center justify-center py-14 text-muted-foreground"
                     >
-                      <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/[0.04]">
+                      <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-card-hover-bg">
                         <Inbox className="h-7 w-7" />
                       </div>
                       <p className="text-sm font-medium text-foreground/80">You&apos;re all caught up</p>
@@ -359,13 +359,13 @@ function DropdownMenuSimple({
               initial={{ opacity: 0, y: -4, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.96 }}
-              className="absolute right-0 z-50 mt-2 w-32 overflow-hidden rounded-xl border border-white/[0.06] bg-[#111118]/95 p-1 shadow-xl shadow-black/30 backdrop-blur-xl"
+              className="absolute right-0 z-50 mt-2 w-32 overflow-hidden rounded-xl border border-border bg-popover/95 p-1 shadow-xl shadow-black/30 backdrop-blur-xl"
             >
               {items.map((item) => (
                 <button
                   key={item.label}
                   onClick={() => { item.onClick(); setOpen(false); }}
-                  className="flex w-full items-center rounded-lg px-2.5 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
+                  className="flex w-full items-center rounded-lg px-2.5 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-card-hover-bg hover:text-foreground"
                 >
                   {item.label}
                 </button>

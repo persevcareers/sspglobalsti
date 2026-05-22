@@ -66,12 +66,12 @@ function SpecializationChip({ name }: { name: string }) {
     <TooltipProvider delayDuration={300}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-muted-foreground/80 transition-all duration-200 hover:bg-white/[0.08] hover:text-foreground">
+          <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card-hover-bg px-2.5 py-1 text-[11px] font-medium text-muted-foreground/80 transition-all duration-200 hover:bg-card-hover-bg hover:text-foreground">
             <Star className="h-2.5 w-2.5" />
             {name}
           </span>
         </TooltipTrigger>
-        <TooltipContent side="top" className="border border-white/[0.06] bg-[#1A1A22]/95 backdrop-blur-xl">
+        <TooltipContent side="top" className="border border-border bg-popover/95 backdrop-blur-xl">
           <p className="text-xs">Specialization: {name}</p>
         </TooltipContent>
       </Tooltip>
@@ -95,10 +95,10 @@ function TrainerDetailDrawer({
   if (!trainer) return null;
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <SheetContent className="w-full border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-lg">
+      <SheetContent className="w-full border-border bg-popover/95 backdrop-blur-xl sm:max-w-lg">
         <SheetHeader className="pb-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-card-hover-bg">
               <GraduationCap className="h-6 w-6 text-muted-foreground" />
             </div>
             <div>
@@ -114,7 +114,7 @@ function TrainerDetailDrawer({
             {trainer.Specialization}
           </SheetDescription>
         </SheetHeader>
-        <Separator className="my-4 bg-white/[0.06]" />
+        <Separator className="my-4 bg-border" />
         <div className="space-y-4 px-4 pb-8">
           <div className="grid gap-3">
             {[
@@ -122,7 +122,7 @@ function TrainerDetailDrawer({
               { icon: Phone, label: "Phone", value: trainer.Phone || "—" },
               { icon: Star, label: "Specialization", value: trainer.Specialization || "—" },
             ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+              <div key={label} className="rounded-lg border border-border bg-card-hover-bg p-3">
                 <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/50">
                   <Icon className="h-3 w-3" />
                   {label}
@@ -194,9 +194,9 @@ export default function TrainersPage() {
           { icon: BookOpen, label: "Specializations", value: stats.specializations, desc: "Unique areas" },
         ].map(({ icon: Icon, label, value, desc }, i) => (
           <motion.div key={label} custom={i} variants={statCardVariants}>
-            <Card className="border-white/[0.06] bg-card shadow-none transition-all duration-200 hover:border-white/[0.10]">
+            <Card className="border-border bg-card shadow-none transition-all duration-200 hover:border-border">
               <CardContent className="flex items-start gap-4 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card-hover-bg">
                   <Icon className="h-4.5 w-4.5 text-muted-foreground" />
                 </div>
                 <div>
@@ -221,7 +221,7 @@ export default function TrainersPage() {
             <Plus className="h-3.5 w-3.5" />
             Add Trainer
           </Button>
-          <DialogContent className="border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl sm:max-w-[500px]">
+          <DialogContent className="border-border bg-popover/95 backdrop-blur-xl sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>{editingTrainer ? "Edit Trainer" : "Add New Trainer"}</DialogTitle>
             </DialogHeader>
@@ -238,7 +238,7 @@ export default function TrainersPage() {
         </div>
         <div className="flex items-center gap-2">
           {(["all", "Active", "Inactive"] as const).map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === s ? "bg-accent-soft text-accent-base" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>
+            <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === s ? "bg-accent-soft text-accent-base" : "text-muted-foreground/60 hover:bg-card-hover-bg")}>
               {s === "all" ? "All" : s}
             </button>
           ))}
@@ -247,7 +247,7 @@ export default function TrainersPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="rounded-xl border border-white/[0.06] bg-card p-4"><TableSkeleton rows={6} /></div>
+        <div className="rounded-xl border border-border bg-card p-4"><TableSkeleton rows={6} /></div>
       ) : error ? (
         <ErrorState title="Failed to load trainers" message={error} onRetry={refresh} />
       ) : filtered.length === 0 ? (
@@ -260,11 +260,11 @@ export default function TrainersPage() {
       ) : (
         <>
           {/* Desktop Table */}
-          <div className="hidden overflow-hidden rounded-xl border border-white/[0.06] bg-card md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
             <div className="overflow-x-auto scrollbar-thin">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/[0.04]">
+                  <tr className="border-b border-border/40">
                     {["Trainer", "Contact", "Specialization", "Status", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">{h}</th>
                     ))}
@@ -274,14 +274,14 @@ export default function TrainersPage() {
                   {filtered.map((trainer, i) => (
                     <motion.tr
                       key={trainer["Trainer ID"] || i} custom={i} variants={tableRowVariants} initial="hidden" animate="visible"
-                      className="group cursor-pointer border-b border-white/[0.04] transition-all duration-200 hover:bg-white/[0.03]"
+                      className="group cursor-pointer border-b border-border/40 transition-all duration-200 hover:bg-card-hover-bg"
                       onClick={() => handleView(trainer)} tabIndex={0} role="button"
                       aria-label={`View details for ${trainer.Name}`}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(trainer); }}
                     >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04] transition-all group-hover:bg-white/[0.08]">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card-hover-bg transition-all group-hover:bg-card-hover-bg">
                             <GraduationCap className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div>
@@ -306,7 +306,7 @@ export default function TrainersPage() {
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon-sm" className="opacity-0 transition-opacity group-hover:opacity-100" aria-label="Trainer actions"><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-40 border-white/[0.06] bg-[#111118]/95 backdrop-blur-xl">
+                          <DropdownMenuContent align="end" className="w-40 border-border bg-popover/95 backdrop-blur-xl">
                             <DropdownMenuItem onClick={() => handleEdit(trainer)}><Pencil className="h-3.5 w-3.5" /> Edit</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleView(trainer)}><ExternalLink className="h-3.5 w-3.5" /> View Details</DropdownMenuItem>
                             <DropdownMenuSeparator />
@@ -325,13 +325,13 @@ export default function TrainersPage() {
           <div className="grid gap-3 md:hidden">
             {filtered.map((trainer, i) => (
               <motion.div key={trainer["Trainer ID"] || i} custom={i} variants={tableRowVariants} initial="hidden" animate="visible"
-                className="cursor-pointer rounded-xl border border-white/[0.06] bg-card p-4 transition-all duration-200 hover:bg-white/[0.03]"
+                className="cursor-pointer rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:bg-card-hover-bg"
                 onClick={() => handleView(trainer)} tabIndex={0} role="button"
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleView(trainer); }}
               >
                 <div className="mb-3 flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04]"><GraduationCap className="h-4 w-4 text-muted-foreground" /></div>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card-hover-bg"><GraduationCap className="h-4 w-4 text-muted-foreground" /></div>
                     <div><p className="font-medium text-foreground">{trainer.Name}</p><p className="text-xs text-muted-foreground/60">{trainer.Specialization}</p></div>
                   </div>
                   <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium", getStatusColor(trainer.Status.toLowerCase()))}>{trainer.Status}</span>
@@ -340,7 +340,7 @@ export default function TrainersPage() {
                   <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{trainer.Email}</span>
                   {trainer.Phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{trainer.Phone}</span>}
                 </div>
-                <div className="mt-3 flex items-center gap-2 border-t border-white/[0.04] pt-3">
+                <div className="mt-3 flex items-center gap-2 border-t border-border/40 pt-3">
                   <Button variant="ghost" size="xs" className="gap-1 text-muted-foreground" onClick={(e) => { e.stopPropagation(); handleEdit(trainer); }}><Pencil className="h-3 w-3" />Edit</Button>
                   <Button variant="ghost" size="xs" className="gap-1 text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(trainer); }}><Trash2 className="h-3 w-3" />Delete</Button>
                 </div>

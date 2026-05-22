@@ -45,7 +45,7 @@ export function OnlineUsersWidget() {
   const getStatusColor = (status?: string) => {
     if (status === "Online") return "bg-green-500";
     if (status === "Idle") return "bg-yellow-500";
-    return "bg-gray-400";
+    return "bg-muted-foreground/40";
   };
 
   const getRoleBadgeVariant = (role?: string) => {
