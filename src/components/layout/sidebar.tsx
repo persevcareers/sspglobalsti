@@ -117,7 +117,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-3"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white shadow-sm">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent-base to-accent-heavy text-xs font-bold text-accent-fg shadow-sm">
                   S
                 </div>
                 <div className="flex flex-col">
@@ -131,7 +131,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white shadow-sm"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent-base to-accent-heavy text-xs font-bold text-accent-fg shadow-sm"
               >
                 S
               </motion.div>
@@ -167,14 +167,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                                 "nav-item group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
                                 collapsed && "justify-center px-2",
                                 active
-                                  ? "active bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                                  ? "active bg-accent-soft text-accent-base"
                                   : "text-muted-foreground hover:text-foreground"
                               )}
                             >
                               {active && (
                                 <motion.div
                                   layoutId="active-indicator"
-                                  className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"
+                                  className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-accent-base"
+                                  style={{ boxShadow: "0 0 8px var(--accent-glow)" }}
                                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                 />
                               )}

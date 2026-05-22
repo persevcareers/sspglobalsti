@@ -37,6 +37,15 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-surface: var(--surface);
+
+  /* ─── Dynamic accent color tokens ─────── */
+  --color-accent-base: var(--accent-base);
+  --color-accent-heavy: var(--accent-heavy);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-ring: var(--accent-ring);
+  --color-accent-glow: var(--accent-glow);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -56,6 +65,15 @@
   --muted-foreground: oklch(0.552 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.21 0.006 285.885);
+
+  /* ─── Dynamic accent palette (default indigo) ── */
+  --accent-base: #6366f1;
+  --accent-heavy: #4f46e5;
+  --accent-soft: rgba(99, 102, 241, 0.1);
+  --accent-fg: #ffffff;
+  --accent-ring: rgba(99, 102, 241, 0.25);
+  --accent-glow: rgba(99, 102, 241, 0.6);
+
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
@@ -94,6 +112,15 @@
   --muted-foreground: oklch(0.65 0.015 286.067);
   --accent: oklch(0.21 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
+
+  /* ─── Dynamic accent palette in dark mode ── */
+  --accent-base: #6366f1;
+  --accent-heavy: #4f46e5;
+  --accent-soft: rgba(99, 102, 241, 0.15);
+  --accent-fg: #ffffff;
+  --accent-ring: rgba(99, 102, 241, 0.35);
+  --accent-glow: rgba(99, 102, 241, 0.5);
+
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 12%);
@@ -146,7 +173,7 @@
     transition: box-shadow 0.3s, transform 0.3s, border-color 0.3s, background-color 0.3s;
   }
   .card-hover:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(99, 102, 241, 0.08);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px color-mix(in srgb, var(--accent-base) 8%, transparent);
     transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.12);
   }
@@ -155,7 +182,7 @@
     transition: all 0.2s ease;
   }
   .btn-glow:hover {
-    box-shadow: 0 0 20px -4px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 20px -4px color-mix(in srgb, var(--accent-base) 25%, transparent);
     transform: translateY(-1px);
   }
   .btn-glow:active {
@@ -170,8 +197,8 @@
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
   }
   .nav-item.active {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.04));
-    box-shadow: 0 0 20px -8px rgba(99, 102, 241, 0.2);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent-base) 12%, transparent), color-mix(in srgb, var(--accent-base) 4%, transparent));
+    box-shadow: 0 0 20px -8px color-mix(in srgb, var(--accent-base) 20%, transparent);
   }
 }
 
@@ -183,21 +210,21 @@
   --fc-button-border-color: rgba(255, 255, 255, 0.08);
   --fc-button-hover-bg-color: rgba(255, 255, 255, 0.06);
   --fc-button-hover-border-color: rgba(255, 255, 255, 0.12);
-  --fc-button-active-bg-color: rgba(99, 102, 241, 0.12);
-  --fc-button-active-border-color: rgba(99, 102, 241, 0.3);
-  --fc-today-bg-color: rgba(99, 102, 241, 0.06);
+  --fc-button-active-bg-color: color-mix(in srgb, var(--accent-base) 12%, transparent);
+  --fc-button-active-border-color: color-mix(in srgb, var(--accent-base) 30%, transparent);
+  --fc-today-bg-color: color-mix(in srgb, var(--accent-base) 6%, transparent);
   --fc-neutral-bg-color: transparent;
   --fc-neutral-text-color: rgba(255, 255, 255, 0.4);
   --fc-page-bg-color: transparent;
-  --fc-event-bg-color: #6366f1;
-  --fc-event-border-color: #6366f1;
+  --fc-event-bg-color: var(--accent-base);
+  --fc-event-border-color: var(--accent-base);
   --fc-event-text-color: #fff;
   --fc-event-selected-overlay-color: rgba(0, 0, 0, 0.3);
   --fc-more-link-bg-color: rgba(255, 255, 255, 0.04);
   --fc-more-link-text-color: rgba(255, 255, 255, 0.6);
   --fc-non-business-color: rgba(255, 255, 255, 0.02);
-  --fc-bg-event-color: rgba(99, 102, 241, 0.08);
-  --fc-highlight-color: rgba(99, 102, 241, 0.08);
+  --fc-bg-event-color: color-mix(in srgb, var(--accent-base) 8%, transparent);
+  --fc-highlight-color: color-mix(in srgb, var(--accent-base) 8%, transparent);
 }
 
 .calendar-premium .fc {
@@ -349,4 +376,11 @@
 
 .calendar-premium .fc-daygrid-more-link {
   color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ─── Smooth accent color transitions ──── */
+*,
+*::before,
+*::after {
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
 }

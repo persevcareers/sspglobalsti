@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { useAccentTheme } from "@/hooks/useAccentTheme";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -19,14 +20,14 @@ interface BarChartProps {
   className?: string;
 }
 
-const COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
+const FIXED_COLORS = ["#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-xl border border-white/[0.12] bg-[#151520]/95 px-3.5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_rgba(99,102,241,0.1)] backdrop-blur-xl">
+      <div className="rounded-xl border border-white/[0.12] bg-[#151520]/95 px-3.5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_color-mix(in srgb,var(--accent-base) 10%,transparent)] backdrop-blur-xl">
         <p className="text-[11px] font-medium text-foreground">{label}</p>
-        <p className="text-sm font-bold text-indigo-400">{payload[0].value}%</p>
+        <p className="text-sm font-bold text-accent-base">{payload[0].value}%</p>
       </div>
     );
   }
@@ -34,6 +35,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function BarChart({ title, data, className }: BarChartProps) {
+  const { accentPalette } = useAccentTheme();
+  const COLORS = [accentPalette.base, ...FIXED_COLORS];
   return (
     <Card className={cn("border-white/[0.06]", className)}>
       <CardHeader className="pb-0">

@@ -115,7 +115,7 @@ function NotificationGroup({
       </div>
       {items.map(({ notif, index }) => {
         const unread = notif.status === "unread";
-        const catColor = NOTIFICATION_CATEGORIES[notif.category as NotificationCategory]?.color || "text-indigo-400";
+        const catColor = NOTIFICATION_CATEGORIES[notif.category as NotificationCategory]?.color || "text-accent-base";
         return (
           <motion.button
             key={notif.notificationId}
@@ -131,7 +131,7 @@ function NotificationGroup({
             }`}
           >
             {unread && (
-              <span className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.5)]" />
+              <span className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-accent-base" style={{ boxShadow: "0 0 6px var(--accent-glow)" }} />
             )}
             <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
               unread ? "bg-white/[0.06]" : "bg-white/[0.03]"
@@ -240,7 +240,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-foreground">Notifications</span>
                     {unreadCount > 0 && (
-                      <span className="rounded-full bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-medium text-indigo-400">
+                      <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-base">
                         {unreadCount} new
                       </span>
                     )}

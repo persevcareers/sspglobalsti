@@ -12,7 +12,7 @@ import { fadeIn, staggerContainer, statCardVariants } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
 const GRADIENT_CARDS = [
-  { from: "from-indigo-500/10", via: "via-purple-500/5", border: "hover:border-indigo-500/20" },
+  { from: "from-accent-base/10", via: "via-accent-base/5", border: "hover:border-accent-base/20" },
   { from: "from-emerald-500/10", via: "via-teal-500/5", border: "hover:border-emerald-500/20" },
   { from: "from-amber-500/10", via: "via-orange-500/5", border: "hover:border-amber-500/20" },
   { from: "from-blue-500/10", via: "via-cyan-500/5", border: "hover:border-blue-500/20" },

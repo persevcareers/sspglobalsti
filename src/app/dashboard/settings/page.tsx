@@ -33,13 +33,14 @@ import {
   Clock,
   Eye,
   EyeOff,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { fadeIn, staggerContainer } from "@/lib/animations";
-
-const INPUT_CLASS = "h-9 border-white/[0.08] bg-white/[0.04] text-sm text-foreground placeholder:text-muted-foreground/40 focus-visible:border-indigo-500/50 focus-visible:ring-[3px] focus-visible:ring-indigo-500/20 transition-all duration-200";
+import { useAccentTheme } from "@/hooks/useAccentTheme";
+import { INPUT_CLASS } from "@/constants/styles";
 
 const SETTINGS_TABS = [
   { id: "profile", label: "Profile", icon: User },
@@ -76,7 +77,7 @@ function ToggleSwitch({ label, description, defaultChecked }: { label: string; d
         onClick={() => setChecked(!checked)}
         className={cn(
           "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-white/[0.08] transition-colors duration-200",
-          checked ? "bg-indigo-500" : "bg-white/[0.06]"
+          checked ? "bg-accent-base" : "bg-white/[0.06]"
         )}
       >
         <span className={cn("inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200", checked ? "translate-x-[22px]" : "translate-x-[3px]")} />
@@ -102,7 +103,7 @@ function ThemeSelector() {
           className={cn(
             "flex flex-col items-center gap-2 rounded-xl border p-4 transition-all duration-200",
             theme === id
-              ? "border-indigo-500/30 bg-indigo-500/10 text-indigo-400"
+              ? "border-accent-base/30 bg-accent-soft text-accent-base"
               : "border-white/[0.06] bg-white/[0.03] text-muted-foreground hover:border-white/[0.10] hover:text-foreground"
           )}
         >
@@ -116,6 +117,7 @@ function ThemeSelector() {
 
 export default function SettingsPage() {
   const { isLoaded, user } = useUser();
+  const { accentColor, setAccentColor, accentColors } = useAccentTheme();
   const [testingConnection, setTestingConnection] = useState(false);
   const [clearingCache, setClearingCache] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
@@ -154,7 +156,7 @@ export default function SettingsPage() {
   if (!isLoaded) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-accent-base" />
       </div>
     );
   }
@@ -178,7 +180,7 @@ export default function SettingsPage() {
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 whitespace-nowrap lg:w-full",
                   activeTab === id
-                    ? "bg-indigo-500/10 text-indigo-400"
+                    ? "bg-accent-soft text-accent-base"
                     : "text-muted-foreground/60 hover:bg-white/[0.04] hover:text-muted-foreground"
                 )}
               >
@@ -258,24 +260,28 @@ export default function SettingsPage() {
               </SettingCard>
 
               <SettingCard title="Accent Color" description="Choose your preferred accent color for the UI.">
-                <div className="flex gap-3">
-                  {[
-                    { name: "Indigo", color: "#6366f1" },
-                    { name: "Emerald", color: "#10b981" },
-                    { name: "Amber", color: "#f59e0b" },
-                    { name: "Rose", color: "#f43f5e" },
-                    { name: "Violet", color: "#8b5cf6" },
-                    { name: "Cyan", color: "#06b6d4" },
-                  ].map(({ name, color }) => (
-                    <button
-                      key={name}
-                      className="group relative flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
-                      style={{ backgroundColor: color }}
-                      onClick={() => toast.success(`Accent color: ${name}`)}
-                    >
-                      <span className="absolute -bottom-4 text-[8px] opacity-0 group-hover:opacity-100 text-muted-foreground">{name}</span>
-                    </button>
-                  ))}
+                <div className="flex gap-3 flex-wrap">
+                  {(Object.entries(accentColors) as [string, { base: string }][]).map(([name, palette]) => {
+                    const isActive = accentColor === name;
+                    return (
+                      <button
+                        key={name}
+                        className={cn(
+                          "group relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200",
+                          isActive ? "scale-110 ring-2 ring-accent-ring ring-offset-2 ring-offset-background" : "hover:scale-110"
+                        )}
+                        style={{ backgroundColor: palette.base }}
+                        onClick={() => setAccentColor(name as any)}
+                      >
+                        {isActive && (
+                          <Check className="h-4 w-4 text-white drop-shadow-sm" />
+                        )}
+                        <span className="absolute -bottom-5 text-[9px] whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 text-muted-foreground transition-opacity">
+                          {name.charAt(0).toUpperCase() + name.slice(1)}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </SettingCard>
 
@@ -433,8 +439,8 @@ export default function SettingsPage() {
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground/60">Primary Color</Label>
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg border border-white/[0.06]" style={{ backgroundColor: "#6366f1" }} />
-                        <Input value="#6366f1" className={cn(INPUT_CLASS, "font-mono text-xs")} />
+                        <div className="h-8 w-8 rounded-lg border border-white/[0.06]" style={{ backgroundColor: accentColors[accentColor].base }} />
+                        <Input value={accentColors[accentColor].base} readOnly className={cn(INPUT_CLASS, "font-mono text-xs")} />
                       </div>
                     </div>
                     <div className="space-y-1.5">
@@ -461,7 +467,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Database className="h-4 w-4 text-indigo-400" />
+                      <Database className="h-4 w-4 text-accent-base" />
                       <span>Connection to Google Sheets backend.</span>
                     </div>
                     <Button onClick={testConnection} disabled={testingConnection} size="sm" className="h-8 gap-1.5 text-xs">

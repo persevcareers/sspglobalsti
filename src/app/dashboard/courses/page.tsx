@@ -68,6 +68,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { TableSkeleton } from "@/components/common/loading-skeleton";
 import { cn, getStatusColor } from "@/lib/utils";
 import { fadeIn, staggerContainer, statCardVariants, tableRowVariants } from "@/lib/animations";
+import { INPUT_CLASS } from "@/constants/styles";
 
 const MODULE_CATEGORIES: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   devops: { label: "DevOps", icon: Container, color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
@@ -458,7 +459,7 @@ function MobileCourseCard({
   );
 }
 
-const INPUT_CLASS = "h-9 border-white/[0.08] bg-white/[0.04] text-sm text-foreground placeholder:text-muted-foreground/40 focus-visible:border-indigo-500/50 focus-visible:ring-[3px] focus-visible:ring-indigo-500/20 transition-all duration-200";
+
 
 export default function CoursesPage() {
   const { data: courses, isLoading, error, refresh, createRecord, updateRecord, deleteRecord } = useSheetsData<Course>("Courses");
@@ -593,7 +594,7 @@ export default function CoursesPage() {
               className={cn(
                 "rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200",
                 statusFilter === s
-                  ? "bg-indigo-500/10 text-indigo-400"
+                  ? "bg-accent-soft text-accent-base"
                   : "text-muted-foreground/60 hover:bg-white/[0.04] hover:text-muted-foreground"
               )}
             >

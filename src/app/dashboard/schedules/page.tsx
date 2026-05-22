@@ -79,19 +79,18 @@ import {
 } from "@/utils/dateUtils";
 import { cn } from "@/lib/utils";
 import { fadeIn, staggerContainer, statCardVariants, tableRowVariants } from "@/lib/animations";
-
-const INPUT_CLASS = "h-9 border-white/[0.08] bg-white/[0.04] text-sm text-foreground placeholder:text-muted-foreground/40 focus-visible:border-indigo-500/50 focus-visible:ring-[3px] focus-visible:ring-indigo-500/20 transition-all duration-200";
+import { INPUT_CLASS } from "@/constants/styles";
 const STATUSES = ["Scheduled", "Running", "Completed", "Cancelled", "Holiday", "Postponed", "PAP"] as const;
 
 const GRADIENT_CARDS = [
-  { from: "from-blue-500/10", via: "via-indigo-500/5", border: "hover:border-blue-500/20" },
+  { from: "from-accent-base/10", via: "via-accent-base/5", border: "hover:border-accent-base/20" },
   { from: "from-emerald-500/10", via: "via-teal-500/5", border: "hover:border-emerald-500/20" },
   { from: "from-teal-500/10", via: "via-cyan-500/5", border: "hover:border-teal-500/20" },
   { from: "from-rose-500/10", via: "via-orange-500/5", border: "hover:border-rose-500/20" },
 ];
 
 const STATUS_STYLES: Record<string, { bg: string; dot: string; icon: React.ElementType }> = {
-  Scheduled: { bg: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20", dot: "bg-indigo-500", icon: Calendar },
+  Scheduled: { bg: "bg-accent-soft text-accent-base border-accent-base/20", dot: "bg-accent-base", icon: Calendar },
   Running: { bg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", dot: "bg-emerald-500", icon: Activity },
   Completed: { bg: "bg-teal-500/10 text-teal-400 border-teal-500/20", dot: "bg-teal-500", icon: CheckCircle2 },
   Cancelled: { bg: "bg-rose-500/10 text-rose-400 border-rose-500/20", dot: "bg-rose-500", icon: Ban },
@@ -507,13 +506,13 @@ export default function SchedulesPage() {
           <div className="flex overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.03] p-0.5">
             <button
               onClick={() => setViewMode("table")}
-              className={cn("rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all", viewMode === "table" ? "bg-indigo-500/10 text-indigo-400 shadow-sm" : "text-muted-foreground/50 hover:text-muted-foreground")}
+              className={cn("rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all", viewMode === "table" ? "bg-accent-soft text-accent-base shadow-sm" : "text-muted-foreground/50 hover:text-muted-foreground")}
             >
               Table
             </button>
             <button
               onClick={() => setViewMode("timeline")}
-              className={cn("rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all", viewMode === "timeline" ? "bg-indigo-500/10 text-indigo-400 shadow-sm" : "text-muted-foreground/50 hover:text-muted-foreground")}
+              className={cn("rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all", viewMode === "timeline" ? "bg-accent-soft text-accent-base shadow-sm" : "text-muted-foreground/50 hover:text-muted-foreground")}
             >
               Timeline
             </button>
@@ -555,7 +554,7 @@ export default function SchedulesPage() {
             onClick={() => setStatusFilter("all")}
             className={cn(
               "rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-200",
-              statusFilter === "all" ? "bg-indigo-500/10 text-indigo-400 shadow-sm" : "text-muted-foreground/50 hover:bg-white/[0.04] hover:text-muted-foreground"
+              statusFilter === "all" ? "bg-accent-soft text-accent-base shadow-sm" : "text-muted-foreground/50 hover:bg-white/[0.04] hover:text-muted-foreground"
             )}
           >
             All
@@ -603,7 +602,7 @@ export default function SchedulesPage() {
             {[
               { label: "Today", key: "today", data: grouped.today, icon: Zap, color: "text-emerald-400" },
               { label: "Tomorrow", key: "tomorrow", data: grouped.tomorrow, icon: Calendar, color: "text-blue-400" },
-              { label: "Upcoming", key: "upcoming", data: grouped.upcoming, icon: Clock, color: "text-indigo-400" },
+              { label: "Upcoming", key: "upcoming", data: grouped.upcoming, icon: Clock, color: "text-accent-base" },
               { label: "Past Sessions", key: "past", data: grouped.past, icon: RotateCcw, color: "text-muted-foreground/40" },
             ].filter((g) => g.data.length > 0).map((group) => (
               <motion.div key={group.key} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>

@@ -51,8 +51,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { TableSkeleton } from "@/components/common/loading-skeleton";
 import { cn, getStatusColor } from "@/lib/utils";
 import { fadeIn, staggerContainer, statCardVariants, tableRowVariants } from "@/lib/animations";
-
-const INPUT_CLASS = "h-9 border-white/[0.08] bg-white/[0.04] text-sm text-foreground placeholder:text-muted-foreground/40 focus-visible:border-indigo-500/50 focus-visible:ring-[3px] focus-visible:ring-indigo-500/20 transition-all duration-200";
+import { INPUT_CLASS, FILTER_ACTIVE_CLASS } from "@/constants/styles";
 const STATUSES = ["Active", "Completed", "Dropped", "On Hold"] as const;
 
 function ProgressBar({ pct }: { pct: number }) {
@@ -216,9 +215,9 @@ export default function StudentsPage() {
           <Input placeholder="Search students by name, email, course, batch..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn(INPUT_CLASS, "w-full pl-9")} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={() => setStatusFilter("all")} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === "all" ? "bg-indigo-500/10 text-indigo-400" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>All</button>
+          <button onClick={() => setStatusFilter("all")} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === "all" ? "bg-accent-soft text-accent-base" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>All</button>
           {STATUSES.map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === s ? "bg-indigo-500/10 text-indigo-400" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>{s}</button>
+            <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === s ? "bg-accent-soft text-accent-base" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>{s}</button>
           ))}
         </div>
       </div>

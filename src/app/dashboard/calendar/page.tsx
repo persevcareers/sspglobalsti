@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useAccentTheme } from "@/hooks/useAccentTheme";
 import {
   parseToISTDateObject,
   formatToISTDate,
@@ -41,8 +42,13 @@ import {
   parseFormattedDate,
 } from "@/utils/dateUtils";
 
-const STATUS_COLORS: Record<string, string> = {
-  Scheduled: "#6366f1",
+const DEFAULT_BATCH_COLORS = [
+  "#10b981", "#f59e0b", "#ef4444",
+  "#8b5cf6", "#06b6d4", "#ec4899", "#14b8a6",
+  "#f97316", "#3b82f6", "#84cc16", "#a855f7",
+];
+
+const FIXED_STATUS_COLORS: Record<string, string> = {
   Running: "#10b981",
   Completed: "#6b7280",
   Cancelled: "#ef4444",
@@ -50,16 +56,6 @@ const STATUS_COLORS: Record<string, string> = {
   Postponed: "#8b5cf6",
   PAP: "#ec4899",
 };
-
-const BATCH_COLORS = [
-  "#6366f1", "#10b981", "#f59e0b", "#ef4444",
-  "#8b5cf6", "#06b6d4", "#ec4899", "#14b8a6",
-  "#f97316", "#3b82f6", "#84cc16", "#a855f7",
-];
-
-function getBatchColor(batchName: string, index: number): string {
-  return BATCH_COLORS[index % BATCH_COLORS.length];
-}
 
 function getStatusIcon(status: string) {
   switch (status) {
@@ -100,6 +96,7 @@ function formatEventTime(startStr: string | undefined, endStr: string | undefine
 }
 
 export default function CalendarPage() {
+  const { accentPalette } = useAccentTheme();
   const calendarRef = useRef<FullCalendar>(null);
   const [schedules, setSchedules] = useState<DailySchedule[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
@@ -135,6 +132,18 @@ export default function CalendarPage() {
     const names = new Set(schedules.map((s) => s["Batch Name"]).filter(Boolean));
     return Array.from(names);
   }, [schedules]);
+
+  const batchColors = useMemo(() => {
+    return [accentPalette.base, ...DEFAULT_BATCH_COLORS];
+  }, [accentPalette.base]);
+
+  const statusColors: Record<string, string> = useMemo(() => {
+    return { ...FIXED_STATUS_COLORS, Scheduled: accentPalette.base };
+  }, [accentPalette.base]);
+
+  const getBatchColor = useCallback((batchName: string, index: number): string => {
+    return batchColors[index % batchColors.length];
+  }, [batchColors]);
 
   const events = useMemo(() => {
     return schedules
@@ -273,7 +282,7 @@ export default function CalendarPage() {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-accent-base" />
           <p className="text-sm text-muted-foreground">Loading calendar data...</p>
         </div>
       </div>
@@ -328,7 +337,7 @@ export default function CalendarPage() {
               onClick={() => handleViewChange(v.id)}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                 view === v.id
-                  ? "bg-indigo-500/10 text-indigo-400"
+                  ? "bg-accent-soft text-accent-base"
                   : "text-muted-foreground/60 hover:text-foreground"
               }`}
             >
@@ -356,7 +365,7 @@ export default function CalendarPage() {
           <select
             value={trainerFilter}
             onChange={(e) => setTrainerFilter(e.target.value)}
-            className="h-8 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 text-xs text-foreground outline-none focus:border-indigo-500/50"
+            className="h-8 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 text-xs text-foreground outline-none focus:border-accent-base/50"
           >
             <option value="all">All Batches</option>
             {batchNames.map((name) => (
@@ -422,7 +431,7 @@ export default function CalendarPage() {
                 </div>
                 {!arg.view.type.startsWith("list") && (
                   <span className="mt-0.5 inline-flex items-center gap-0.5 rounded-sm px-1 py-0 text-[7px] font-medium uppercase"
-                    style={{ backgroundColor: STATUS_COLORS[status] + "30", color: STATUS_COLORS[status] }}
+                    style={{ backgroundColor: statusColors[status] + "30", color: statusColors[status] }}
                   >
                     {status}
                   </span>
@@ -436,7 +445,7 @@ export default function CalendarPage() {
       {/* Legend */}
       <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-white/[0.06] bg-card px-4 py-3">
         <span className="text-[11px] font-medium text-muted-foreground/60">Status Legend:</span>
-        {Object.entries(STATUS_COLORS).map(([status, color]) => (
+        {Object.entries(statusColors).map(([status, color]) => (
           <div key={status} className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: color }} />
             <span className="text-[10px] text-muted-foreground/70">{status}</span>
@@ -490,8 +499,8 @@ export default function CalendarPage() {
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
                     style={{
-                      backgroundColor: STATUS_COLORS[selectedEvent.Status || "Scheduled"] + "20",
-                      color: STATUS_COLORS[selectedEvent.Status || "Scheduled"],
+                      backgroundColor: statusColors[selectedEvent.Status || "Scheduled"] + "20",
+                      color: statusColors[selectedEvent.Status || "Scheduled"],
                     }}
                   >
                     {getStatusIcon(selectedEvent.Status || "Scheduled")}

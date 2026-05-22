@@ -58,8 +58,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { TableSkeleton } from "@/components/common/loading-skeleton";
 import { cn, getStatusColor } from "@/lib/utils";
 import { fadeIn, staggerContainer, statCardVariants, tableRowVariants } from "@/lib/animations";
-
-const INPUT_CLASS = "h-9 border-white/[0.08] bg-white/[0.04] text-sm text-foreground placeholder:text-muted-foreground/40 focus-visible:border-indigo-500/50 focus-visible:ring-[3px] focus-visible:ring-indigo-500/20 transition-all duration-200";
+import { INPUT_CLASS } from "@/constants/styles";
 
 function SpecializationChip({ name }: { name: string }) {
   return (
@@ -237,7 +236,7 @@ export default function TrainersPage() {
         </div>
         <div className="flex items-center gap-2">
           {(["all", "Active", "Inactive"] as const).map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === s ? "bg-indigo-500/10 text-indigo-400" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>
+            <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200", statusFilter === s ? "bg-accent-soft text-accent-base" : "text-muted-foreground/60 hover:bg-white/[0.04]")}>
               {s === "all" ? "All" : s}
             </button>
           ))}
