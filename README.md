@@ -479,7 +479,7 @@ Deployed on **Vercel**. To deploy your own:
 
 ## License
 
-Private — SSP Global
+All rights reserved — SSP Global
 
 ---
 
