@@ -1,4 +1,4 @@
-# SSP Global — Track Suite
+# SSP Global — STI Track Suite
 
 An **Internal Application — Track Suite** for SSP Global Software Training Institute. Handles end-to-end administration of students, courses, batches, trainers, schedules, leads, and user sessions with role-based access control — all powered by Google Sheets as the operational data store.
 
@@ -59,7 +59,7 @@ An **Internal Application — Track Suite** for SSP Global Software Training Ins
 - **Pagination** — Server-side limit/offset, unread count returned from server
 
 ### UI/UX
-- **Responsive** — Mobile-first with collapsible 260px sidebar (MAIN/MANAGEMENT/SYSTEM sections, logo area with "SSP Global" + "Track Suite", active indicator line, user footer with sign out)
+- **Responsive** — Mobile-first with collapsible 260px sidebar (MAIN/MANAGEMENT/SYSTEM sections, logo area with "SSP Global" + "STI Track Suite", active indicator line, user footer with sign out)
 - **Dark Mode** — System-aware theme toggle via `next-themes` with layered surfaces (`background #0A0A0F` → `card #111118`), softer borders (8% opacity), better muted-foreground contrast (65%), `--surface` CSS token
 - **Accent Colors** — 6 selectable palettes (Indigo, Emerald, Amber, Rose, Violet, Cyan) with instant runtime switching via CSS custom properties, persisted in localStorage
 - **Layout Density** — Compact Mode reduces card padding, gaps, margins, heading and icon sizes; Reduced Motion disables animations
@@ -474,6 +474,12 @@ Deployed on **Vercel**. To deploy your own:
 - **Schedules**: Daily tracker with IST timezone, status workflow (Scheduled → Running → Completed / Cancelled / Holiday / Postponed / PAP)
 - **UI**: shadcn/ui component library, Tailwind CSS 3, responsive layout, dark/light mode
 - **Toast notifications**: sonner for success/error feedback
+
+---
+
+## Contact
+
+**Email:** persevcareers@gmail.com
 
 ---
 

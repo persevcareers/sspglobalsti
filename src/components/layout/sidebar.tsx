@@ -116,7 +116,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold leading-tight">SSP Global</span>
-                  <span className="text-[10px] leading-tight text-muted-foreground">Track Suite</span>
+                  <span className="text-[10px] leading-tight text-muted-foreground">STI Track Suite</span>
                 </div>
               </motion.div>
             ) : (

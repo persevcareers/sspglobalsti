@@ -11,12 +11,12 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Track Suite - SSP Global",
+  title: "STI Track Suite - SSP Global",
   description:
     "Internal application for SSP Global Software Training Institute.",
-  keywords: ["training", "student management", "ERP", "education", "SSP Global", "Track Suite"],
+  keywords: ["training", "student management", "ERP", "education", "SSP Global", "STI Track Suite"],
   openGraph: {
-title: "Track Suite - SSP Global",
+title: "STI Track Suite - SSP Global",
     description: "Internal application for SSP Global Software Training Institute.",
   },
 };

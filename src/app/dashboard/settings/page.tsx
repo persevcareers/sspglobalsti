@@ -438,7 +438,7 @@ export default function SettingsPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   {[
                     { label: "Organization Name", value: "SSP Global" },
-                    { label: "Platform", value: "Track Suite" },
+                    { label: "Platform", value: "STI Track Suite" },
                     { label: "Contact Email", value: "admin@sspglobal.com" },
                     { label: "Branch", value: "Head Office" },
                     { label: "Timezone", value: "Asia/Kolkata (IST, UTC+5:30)" },
