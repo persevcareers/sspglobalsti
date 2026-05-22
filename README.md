@@ -82,22 +82,36 @@ tracking-app/
 ├── public/                   # Static assets
 ├── src/
 │   ├── app/                  # Next.js App Router pages
-│   │   ├── dashboard/        # Dashboard + sub-pages (students, courses, batches, etc.)
+│   │   ├── page.tsx          # Root landing page
+│   │   ├── layout.tsx        # Root layout
+│   │   ├── globals.css       # Global styles
+│   │   ├── dashboard/        # Dashboard + sub-pages
+│   │   │   ├── page.tsx      # Dashboard home (stats, online users, activity feed)
+│   │   │   ├── analytics/    # Charts, cached metrics, refresh button
+│   │   │   ├── calendar/     # FullCalendar with drag-and-drop scheduling
+│   │   │   ├── courses/      # Course management with module chips, detail drawer
+│   │   │   ├── batches/      # Batch CRUD with progress bars, status badges
+│   │   │   ├── trainers/     # Trainer profiles with specialization
+│   │   │   ├── students/     # Student CRUD with search and progress tracking
+│   │   │   ├── schedules/    # Daily schedule tracker (IST), table + timeline
+│   │   │   ├── leads/        # Lead management with source tracking
+│   │   │   └── settings/     # Profile, appearance, org, system config
 │   │   ├── sign-in/          # Clerk sign-in page
 │   │   └── sign-up/          # Clerk sign-up page
 │   ├── components/
-│   │   ├── charts/           # Recharts components
-│   │   ├── common/           # ThemeProvider, UserSync, loading skeletons
-│   │   ├── dashboard/        # Online users widget, activity feed
-│   │   ├── forms/            # ScheduleForm, TrainerForm, StudentForm, etc.
-│   │   ├── layout/           # Sidebar, Navbar (with notification panel)
+│   │   ├── charts/           # Recharts components (Area, Bar, Pie, Progress)
+│   │   ├── common/           # ThemeProvider, UserSync, PageHeader, ErrorState, EmptyState
+│   │   ├── dashboard/        # Online users widget, activity feed, stat cards
+│   │   ├── forms/            # BatchForm, CourseForm, LeadForm, ScheduleForm, StudentForm, TrainerForm
+│   │   ├── layout/           # Sidebar, Navbar (with notification dropdown)
 │   │   ├── tables/           # Reusable DataTable component
-│   │   └── ui/               # shadcn/ui primitives
-│   ├── hooks/                # useSheetsData, useActivityTracking, useNotifications
-│   ├── services/             # API layer (safeFetch, cache, deduplication)
-│   ├── constants/            # Sheet names, time intervals, roles
+│   │   └── ui/               # shadcn/ui primitives (button, card, dialog, etc.)
+│   ├── contexts/             # React contexts (AccentThemeContext, SettingsContext)
+│   ├── hooks/                # Custom hooks (useSheetsData, useDebounce, useSettings, etc.)
+│   ├── services/             # API layer (api.ts), auth, metrics, roles
+│   ├── constants/            # Sheet names, accent colors, styles
 │   ├── types/                # TypeScript interfaces
-│   ├── lib/                  # Animation variants, utilities
+│   ├── lib/                  # Animation variants, utility functions, date utils
 │   └── proxy.ts              # Clerk route protection middleware
 └── .env.local                # Environment variables
 ```
