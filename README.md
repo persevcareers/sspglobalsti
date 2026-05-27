@@ -59,12 +59,12 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 
 ### Core Modules
 - **Dashboard** — Stats overview, online users widget, real-time activity feed
-- **Students** — Full CRUD with search and progress tracking
-- **Courses** — Course catalog with active/inactive status
-- **Batches** — Batch management linked to courses and trainers with status badges, progress bars, filter bar
-- **Trainers** — Trainer profiles with specialization
+- **Students** — Full CRUD with search, progress tracking, and CSV export
+- **Courses** — Course catalog with active/inactive status and CSV export
+- **Batches** — Batch management linked to courses and trainers with status badges, progress bars, filter bar, and CSV export
+- **Trainers** — Trainer profiles with specialization and CSV export
 - **Schedules** — Enterprise Event & Notification Platform
-- **Leads** — Lead management with source tracking and follow-up dates
+- **Leads** — Lead management with source tracking, follow-up dates, and CSV export
 - **Analytics** — Charts for lead sources, student status distribution, enrollment trends, batch progress
 
 ### Enterprise Event & Notification Platform (Schedules Module)
@@ -124,6 +124,8 @@ tracking-app/
 ├── public/                   # Static assets
 ├── src/
 │   ├── app/                  # Next.js App Router pages
+│   │   ├── api/               # API proxy route
+│   │   │   └── sheets/        # /api/sheets — Clerk-authenticated proxy to Google Apps Script
 │   │   ├── dashboard/        # Dashboard + sub-pages
 │   │   │   ├── analytics/    # Charts & metrics
 │   │   │   ├── batches/      # Batch management
@@ -150,7 +152,8 @@ tracking-app/
 │   ├── services/             # API layer (safeFetch, cache, deduplication)
 │   ├── constants/            # Sheet names, time intervals, roles
 │   ├── types/                # TypeScript interfaces (AppEvent, ActivityLogEntry, etc.)
-│   ├── lib/                  # Animation variants, utilities
+│   ├── lib/                  # Animation variants, utilities, CSV export
+│   │   └── export.ts          # CSV export utility
 │   ├── utils/                # Utility functions
 │   └── proxy.ts              # Clerk route protection middleware
 └── .env.local                # Environment variables
@@ -198,11 +201,25 @@ Create `.env.local`:
 NEXT_PUBLIC_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/YOUR_ID/exec
 NEXT_PUBLIC_APPS_SCRIPT_URL=https://script.google.com/macros/s/YOUR_ID/exec
 
+# Server-side API secret (generate via Apps Script setup())
+# Run setup() then getApiSecret() in the editor, copy the UUID here:
+API_SECRET=
+
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxx
 CLERK_SECRET_KEY=sk_test_xxxxxxxxxx
 ```
 
-### 5. Set User Roles
+### 5. Set Up API Secret
+
+After deploying the Apps Script:
+
+1. Open the Script Editor
+2. Run `setup()` once (generates an API secret)
+3. Run `getApiSecret()` in the console
+4. Copy the returned UUID to `API_SECRET=` in `.env.local`
+5. Restart the dev server
+
+### 6. Set User Roles
 
 In **Clerk Dashboard → Users → [user] → Metadata**, add:
 
@@ -212,7 +229,7 @@ In **Clerk Dashboard → Users → [user] → Metadata**, add:
 
 Available roles: `Super Admin`, `Admin`, `Trainer`, `Student`, `HR`, `Staff`
 
-### 6. Run
+### 7. Run
 
 ```bash
 npm run dev
@@ -256,6 +273,11 @@ graph TB
         MW["proxy.ts Middleware<br/>(route protection)"]
     end
 
+    subgraph Proxy["API Proxy (Next.js)"]
+        APIProxy["/api/sheets/route.ts<br/>(validates Clerk session)"]
+        APISecret["Injects x-api-secret<br/>(server-side only)"]
+    end
+
     subgraph State["Client State & Logic"]
         ZS["Zustand Stores"]
         Hooks["React Hooks"]
@@ -269,9 +291,11 @@ graph TB
         SheetData["useSheetsData<br/>(CRUD + optimistic updates)"]
         Notif["useNotifications<br/>(10s poll)"]
         Activity["useActivityTracking<br/>(heartbeat + idle)"]
+        Export["export.ts<br/>(CSV download)"]
     end
 
     subgraph Backend["Google Apps Script"]
+        AuthCheck["API Secret Validation"]
         GET["doGet<br/>(read operations)"]
         POST["doPost<br/>(create/update/delete)"]
         Session["Session Handlers<br/>(login/logout/heartbeat)"]
@@ -307,14 +331,26 @@ graph TB
     Clerk -->|"JWT + session"| UI
 
     UI -->|"read/write"| API
+    API --> Proxy
+    Proxy --> APIProxy
+    APIProxy --> APISecret
+    APIProxy -->|"forward with secret"| Backend
+
     API --> SheetData
     API --> Notif
     API --> Activity
+    UI --> Export
 
-    SheetData -->|"GET/POST"| GET
-    SheetData -->|"POST"| POST
-    Notif -->|"POST"| NotifHandler
-    Activity -->|"POST"| Session
+    SheetData -->|"GET/POST"| API
+    Notif -->|"POST"| API
+    Activity -->|"POST"| API
+
+    Backend --> AuthCheck
+    AuthCheck --> GET
+    AuthCheck --> POST
+    POST --> Session
+    POST --> NotifHandler
+    POST --> ActivityHandler
 
     GET -->|"read"| Data
     POST -->|"create/update/delete"| Data
@@ -396,6 +432,18 @@ Deployed on **Vercel**. To deploy your own:
 ---
 
 ## Changelog
+
+### v3.1 — Security Hardening & CSV Export
+- **API Proxy** — New Next.js `/api/sheets` route validates Clerk session before forwarding to Apps Script; Google Script URL stays server-side only
+- **API Secret Authentication** — All Apps Script endpoints require `x-api-secret` header; secret stored in Script Properties, never exposed to client
+- **Role Fix** — `handleLogin` no longer accepts role from client (always defaults to "Pending"); `handleUpdateUserRole` now requires `requestingUserId` with permission checks
+- **Sheet Allowlist** — Only predefined sheet names are accepted by the Apps Script backend
+- **Security Headers** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Permissions-Policy, Referrer-Policy configured in `next.config.ts`
+- **XSS Fix** — Replaced `dangerouslySetInnerHTML` with `next/script` + validated accent color values in `layout.tsx`
+- **Privacy** — Removed `api.ipify.org` third-party IP lookup (was leaking all user IPs); removed client-reported IP logging
+- **CSV Export** — New `exportToCSV` utility wired to Export buttons on Students, Courses, Batches, Trainers, and Leads pages
+- **Beacon Secured** — Logout beacon now routed through the authenticated proxy
+- **`getLastColumn()` Guard** — All 8 unguarded `getLastColumn()` calls wrapped with `Math.max(..., 1)` to prevent "columns must be at least 1" error
 
 ### v3.0 — Enterprise Event & Notification Platform
 - **Schedules Module** — Complete rewrite into 4-view enterprise platform:
