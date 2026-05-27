@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-const SCRIPT_URL = process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL as string;
+const PROXY_URL = "/api/sheets";
 
 export type ActionType = "create" | "update" | "delete" | "read";
 export type SheetName = "Students" | "Courses" | "DailySchedules" | "Leads" | "Trainers" | "Batches" | "Analytics" | "Users" | "LoginLogs" | "SessionLogs" | "Roles" | "Notifications" | "ActivityLogs";
@@ -103,8 +103,8 @@ async function safeFetch(url: string, options?: RequestInit): Promise<Response> 
 }
 
 export const fetchSheetData = async <T>(sheetName: SheetName): Promise<T[]> => {
-  if (!SCRIPT_URL) {
-    console.warn("NEXT_PUBLIC_GOOGLE_SCRIPT_URL is not set");
+  if (!PROXY_URL) {
+    console.warn("PROXY_URL is not set");
     return [];
   }
 
@@ -118,11 +118,7 @@ export const fetchSheetData = async <T>(sheetName: SheetName): Promise<T[]> => {
 
   const promise = (async () => {
     try {
-      const url = new URL(SCRIPT_URL);
-      url.searchParams.append("action", "read");
-      url.searchParams.append("sheet", sheetName);
-
-      const response = await safeFetch(url.toString(), { method: "GET" });
+      const response = await safeFetch(`${PROXY_URL}?action=read&sheet=${encodeURIComponent(sheetName)}`, { method: "GET" });
       const result: ApiResponse<T[]> = await response.json();
 
       if (result.success && result.data) {
@@ -155,13 +151,13 @@ export const modifySheetData = async <T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any
 ): Promise<ApiResponse<T>> => {
-  if (!SCRIPT_URL) {
+  if (!PROXY_URL) {
     toast.error("Configuration error", { description: "Google Script URL is not configured." });
-    throw new Error("NEXT_PUBLIC_GOOGLE_SCRIPT_URL is not set");
+    throw new Error("NEXT_PUBLIC_GOOGLE_PROXY_URL is not set");
   }
 
   try {
-    const response = await safeFetch(SCRIPT_URL, {
+    const response = await safeFetch(PROXY_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action, sheet: sheetName, data }),
@@ -194,13 +190,13 @@ export const callSessionAction = async <T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any
 ): Promise<SessionApiResponse<T>> => {
-  if (!SCRIPT_URL) {
+  if (!PROXY_URL) {
     toast.error("Configuration error", { description: "Google Script URL is not configured." });
-    throw new Error("NEXT_PUBLIC_GOOGLE_SCRIPT_URL is not set");
+    throw new Error("NEXT_PUBLIC_GOOGLE_PROXY_URL is not set");
   }
 
   try {
-    const response = await safeFetch(SCRIPT_URL, {
+    const response = await safeFetch(PROXY_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action, data }),

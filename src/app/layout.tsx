@@ -5,6 +5,7 @@ import { AccentThemeProvider } from "@/components/common/AccentThemeContext";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ClerkProvider } from "@clerk/nextjs";
+import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -28,24 +29,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const accent = localStorage.getItem('accent-color');
-                if (accent) {
-                  document.documentElement.setAttribute('data-accent', accent);
-                } else {
-                  document.documentElement.setAttribute('data-accent', 'indigo');
-                }
-                const compact = localStorage.getItem('compact-mode');
-                if (compact === 'true') {
-                  document.documentElement.classList.add('compact-mode');
-                }
-              } catch (e) {}
-            `,
-          }}
-        />
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`
+            try {
+              const accent = localStorage.getItem('accent-color');
+              if (accent === 'indigo' || accent === 'blue' || accent === 'green' || accent === 'red' || accent === 'purple' || accent === 'orange') {
+                document.documentElement.setAttribute('data-accent', accent);
+              } else {
+                document.documentElement.setAttribute('data-accent', 'indigo');
+              }
+              const compact = localStorage.getItem('compact-mode');
+              if (compact === 'true') {
+                document.documentElement.classList.add('compact-mode');
+              }
+            } catch (e) {}
+          `}
+        </Script>
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ClerkProvider>

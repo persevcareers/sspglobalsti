@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { fetchSheetData, modifySheetData, callSessionAction } from "@/services/api";
-import { User, LoginLog, UserRole } from "@/types";
+import { User, LoginLog } from "@/types";
 
 function getDeviceInfo() {
   if (typeof window === "undefined") return { device: "", browser: "" };
@@ -73,14 +73,11 @@ export function UserSync() {
         const existingUsers = await fetchSheetData<User>("Users");
         const existingUser = existingUsers.find((u) => u["User ID"] === currentUserId);
 
-        const userRole = (user.publicMetadata?.role as UserRole) || "Pending";
-
         if (!existingUser) {
           const newUserRecord: Partial<User> = {
             "User ID": currentUserId,
             "Full Name": userFullName,
             "Email": userEmail,
-            "Role": userRole,
           };
           await modifySheetData("create", "Users", newUserRecord);
 
@@ -119,22 +116,13 @@ export function UserSync() {
         }
 
         const { device, browser } = getDeviceInfo();
-        let ip = "";
-        try {
-          const ipRes = await fetch("https://api.ipify.org?format=json", { signal: AbortSignal.timeout(3000) });
-          const ipData = await ipRes.json();
-          ip = ipData.ip || "";
-        } catch {
-        }
 
         const loginResult = await callSessionAction("loginUser", {
           "User ID": currentUserId,
           "Full Name": userFullName,
           "Email": userEmail,
-          "Role": userRole,
           "Device": device,
           "Browser": browser,
-          "IP": ip,
         });
 
         if (!loginResult.success) {

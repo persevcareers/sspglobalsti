@@ -1,12 +1,48 @@
 const SCRIPT_PROP = PropertiesService.getScriptProperties();
 
+const ALLOWED_SHEETS = [
+  "Students", "Courses", "DailySchedules", "Leads", "Trainers",
+  "Batches", "Analytics", "Users", "LoginLogs", "SessionLogs",
+  "Roles", "Notifications", "ActivityLogs"
+];
+
 function setup() {
   const doc = SpreadsheetApp.getActiveSpreadsheet();
   SCRIPT_PROP.setProperty("key", doc.getId());
+  const existingSecret = SCRIPT_PROP.getProperty("api_secret");
+  if (!existingSecret) {
+    SCRIPT_PROP.setProperty("api_secret", Utilities.getUuid());
+  }
+}
+
+function setApiSecret(secret) {
+  if (!secret) {
+    console.error("Usage: setApiSecret('your-secret-value')");
+    return;
+  }
+  SCRIPT_PROP.setProperty("api_secret", secret);
+  console.log("API Secret updated successfully");
+}
+
+function getApiSecret() {
+  const secret = SCRIPT_PROP.getProperty("api_secret");
+  console.log("API Secret:", secret);
+  return secret;
+}
+
+function isValidApiSecret(secret) {
+  if (!secret) return false;
+  const expected = SCRIPT_PROP.getProperty("api_secret");
+  return secret === expected;
 }
 
 function doGet(e) {
   try {
+    const apiSecret = e?.parameter?.["x-api-secret"];
+    if (!isValidApiSecret(apiSecret)) {
+      return response(false, "Unauthorized");
+    }
+
     const action = e?.parameter?.action;
 
     if (action === "ping") {
@@ -21,6 +57,10 @@ function doGet(e) {
 
     if (!sheetName) {
       return response(false, "Missing sheet parameter. Use ?action=read&sheet=SheetName");
+    }
+
+    if (!ALLOWED_SHEETS.includes(sheetName)) {
+      return response(false, "Sheet not found");
     }
 
     const doc = SpreadsheetApp.getActiveSpreadsheet();
@@ -57,6 +97,14 @@ function doGet(e) {
 function doPost(e) {
   try {
     const postData = JSON.parse(e.postData.contents);
+
+    const apiSecret = postData["x-api-secret"];
+    if (!isValidApiSecret(apiSecret)) {
+      return response(false, "Unauthorized");
+    }
+
+    delete postData["x-api-secret"];
+
     const action = postData.action;
     const sheetName = postData.sheet;
     const data = postData.data;
@@ -81,6 +129,10 @@ function doPost(e) {
       return response(false, "Missing required parameters");
     }
 
+    if (!ALLOWED_SHEETS.includes(sheetName)) {
+      return response(false, "Sheet not found");
+    }
+
     const doc = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = doc.getSheetByName(sheetName);
 
@@ -88,7 +140,7 @@ function doPost(e) {
       return response(false, "Sheet not found");
     }
 
-    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const headers = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
 
     if (action === "create") {
       const newRow = headers.map(header => {
@@ -184,7 +236,7 @@ function handleLogin(data) {
       if (header === "User ID") return data["User ID"];
       if (header === "Full Name") return data["Full Name"] || "";
       if (header === "Email") return data["Email"] || "";
-      if (header === "Role") return data["Role"] || "Pending";
+      if (header === "Role") return "Pending";
       if (header === "Login Time") return nowISO;
       if (header === "Last Active") return nowISO;
       if (header === "Status") return "Online";
@@ -208,7 +260,7 @@ function handleLogin(data) {
   }
 
   if (logSheet) {
-    const logHeaders = logSheet.getRange(1, 1, 1, logSheet.getLastColumn()).getValues()[0];
+    const logHeaders = logSheet.getRange(1, 1, 1, Math.max(logSheet.getLastColumn(), 1)).getValues()[0];
     const logRow = logHeaders.map(h => {
       if (h === "Log ID") return Utilities.getUuid();
       if (h === "User ID") return data["User ID"];
@@ -222,7 +274,7 @@ function handleLogin(data) {
   }
 
   if (sessionSheet) {
-    const sessionHeaders = sessionSheet.getRange(1, 1, 1, sessionSheet.getLastColumn()).getValues()[0];
+    const sessionHeaders = sessionSheet.getRange(1, 1, 1, Math.max(sessionSheet.getLastColumn(), 1)).getValues()[0];
     const sessionRow = sessionHeaders.map(h => {
       if (h === "Log ID") return Utilities.getUuid();
       if (h === "User ID") return data["User ID"];
@@ -232,7 +284,7 @@ function handleLogin(data) {
       if (h === "Duration") return "";
       if (h === "Device") return data["Device"] || "";
       if (h === "Browser") return data["Browser"] || "";
-      if (h === "IP") return data["IP"] || "";
+      if (h === "IP") return "";
       return "";
     });
     sessionSheet.appendRow(sessionRow);
@@ -274,7 +326,7 @@ function handleLogout(data) {
   sheet.getRange(rowIndex, 1, 1, headers.length).setValues([updateRow]);
 
   if (logSheet) {
-    const logHeaders = logSheet.getRange(1, 1, 1, logSheet.getLastColumn()).getValues()[0];
+    const logHeaders = logSheet.getRange(1, 1, 1, Math.max(logSheet.getLastColumn(), 1)).getValues()[0];
     const logRow = logHeaders.map(h => {
       if (h === "Log ID") return Utilities.getUuid();
       if (h === "User ID") return data["User ID"];
@@ -298,7 +350,7 @@ function handleLogout(data) {
           ? Math.floor(durationMin / 60) + "h " + (durationMin % 60) + "m"
           : durationMin + "m";
 
-        const updateHeaders = sessionSheet.getRange(1, 1, 1, sessionSheet.getLastColumn()).getValues()[0];
+        const updateHeaders = sessionSheet.getRange(1, 1, 1, Math.max(sessionSheet.getLastColumn(), 1)).getValues()[0];
         const updateRow = updateHeaders.map((h, idx) => {
           if (h === "Logout Time") return nowISO;
           if (h === "Duration") return durationStr;
@@ -345,16 +397,47 @@ function handleUpdateUserRole(data) {
 
   if (!sheet) return response(false, "Users sheet not found");
 
+  const requestingUserId = data["requestingUserId"];
+  const validRoles = ["Admin", "Trainer", "Student", "HR", "Staff"];
+  const targetUserId = data["User ID"];
+  const newRole = data["Role"];
+
   const sheetData = sheet.getDataRange().getValues();
   const headers = sheetData[0];
 
+  let requestingUserRole = null;
   for (let i = 1; i < sheetData.length; i++) {
-    if (sheetData[i][0] == data["User ID"]) {
-      const rowIndex = i + 1;
+    if (sheetData[i][0] == requestingUserId) {
+      requestingUserRole = String(sheetData[i][headers.indexOf("Role")] || "");
+      break;
+    }
+  }
+
+  const SUPER_ADMIN_OVERRIDE = SCRIPT_PROP.getProperty("super_admin_id");
+  const isSuperAdmin = requestingUserId && requestingUserId === SUPER_ADMIN_OVERRIDE;
+
+  if (!isSuperAdmin && requestingUserRole !== "Super Admin" && requestingUserRole !== "Admin") {
+    return response(false, "Unauthorized: insufficient permissions");
+  }
+
+  if (!validRoles.includes(newRole)) {
+    return response(false, "Invalid role");
+  }
+
+  for (let i = 1; i < sheetData.length; i++) {
+    if (sheetData[i][0] == targetUserId) {
+      const targetCurrentRole = String(sheetData[i][headers.indexOf("Role")] || "");
+
+      if (!isSuperAdmin && requestingUserRole !== "Super Admin") {
+        if (targetCurrentRole === "Super Admin" || targetCurrentRole === "Admin") {
+          return response(false, "Cannot modify this user's role");
+        }
+      }
+
       const roleCol = headers.indexOf("Role");
       if (roleCol === -1) return response(false, "Role column not found");
 
-      sheet.getRange(rowIndex, roleCol + 1).setValue(data["Role"]);
+      sheet.getRange(i + 1, roleCol + 1).setValue(newRole);
       return response(true, "Role updated successfully");
     }
   }
@@ -396,9 +479,8 @@ function handleCreateNotification(data) {
   if (!sheet) return response(false, "Notifications sheet not found");
 
   const now = new Date().toISOString();
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const headers = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
 
-  // Dedup: same userId + category + title within 5 min refreshes createdAt
   const existing = sheet.getDataRange().getValues();
   for (let i = 1; i < existing.length; i++) {
     const row = existing[i];
@@ -561,7 +643,6 @@ function handleCleanupNotifications(data) {
 
   const now = new Date();
 
-  // Soft-delete expired notifications
   for (let i = 1; i < sheetData.length; i++) {
     const expiresAt = sheetData[i][expiresAtCol];
     if (expiresAt && new Date(expiresAt) < now) {
@@ -571,11 +652,9 @@ function handleCleanupNotifications(data) {
     }
   }
 
-  // Hard-delete archived + 90d old
   const hardCutoff = new Date();
   hardCutoff.setDate(hardCutoff.getDate() - 90);
   let deleted = 0;
-  // Collect rows to delete (iterate backwards)
   for (let i = sheetData.length - 1; i >= 1; i--) {
     if (sheetData[i][statusCol] === "archived") {
       const created = new Date(sheetData[i][createdAtCol]);
@@ -711,8 +790,8 @@ function handleComputeAndStoreMetrics() {
     }
   }
 
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  sheet.getRange(1, 1, sheet.getLastRow(), sheet.getLastColumn()).clearContent();
+  const headers = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
+  sheet.getRange(1, 1, Math.max(sheet.getLastRow(), 1), Math.max(sheet.getLastColumn(), 1)).clearContent();
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
 
