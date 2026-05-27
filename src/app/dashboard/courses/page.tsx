@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useSheetsData } from "@/hooks/useSheetsData";
 import { Course } from "@/types";
 import { Button } from "@/components/ui/button";
+import { exportToCSV } from "@/lib/export";
 import {
   Dialog,
   DialogContent,
@@ -216,7 +217,7 @@ export default function CoursesPage() {
         description="Define courses, manage modules, and organize learning paths."
         action={
           <div className="flex shrink-0 items-center gap-2">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5">
+            <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => exportToCSV(courses, "courses")}>
               <Download className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Export</span>
             </Button>
