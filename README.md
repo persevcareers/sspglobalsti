@@ -9,7 +9,7 @@
       <img src="https://img.shields.io/github/stars/persevcareers/sspglobalsti?style=for-the-badge&logo=github&color=gold" alt="GitHub Stars">
     </a>
     <a href="https://github.com/persevcareers/sspglobalsti/blob/main/LICENSE">
-      <img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge" alt="License">
+      <img src="https://img.shields.io/badge/License-Private-64748b?style=for-the-badge" alt="License">
     </a>
   </p>
 
@@ -42,12 +42,15 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 |-------|-|
 | **Framework** | Next.js 16 (App Router, Turbopack) |
 | **Language** | TypeScript 5 |
-| **UI** | Tailwind CSS 4, Radix UI, shadcn/ui |
+| **UI** | Tailwind CSS 4, Radix UI, shadcn/ui, lucide-react |
 | **Auth** | Clerk v7 |
+| **Tables** | @tanstack/react-table |
 | **Charts** | Recharts |
-| **Forms** | React Hook Form + Zod |
+| **Forms** | React Hook Form + Zod + @hookform/resolvers |
 | **State** | Zustand |
+| **Date/Time** | date-fns |
 | **Calendar** | FullCalendar |
+| **Theming** | next-themes, class-variance-authority, tailwind-merge |
 | **Backend** | Google Apps Script + Google Sheets |
 | **Notifications** | sonner (in-app) + Web Notification API |
 | **Animations** | Framer Motion |
@@ -57,7 +60,7 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 ## Features
 
 ### Core Modules
-- **Dashboard** — Stats overview, online users widget, real-time activity feed
+- **Dashboard** — Stats overview, online users widget, recent activity timeline
 - **Students** — Full CRUD with search, progress tracking, and CSV export
 - **Courses** — Course catalog with active/inactive status and CSV export
 - **Batches** — Batch management linked to courses and trainers with status badges, progress bars, filter bar, and CSV export
@@ -68,7 +71,7 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 - **Analytics** — Charts for lead sources, student status distribution, enrollment trends, batch progress
 
 ### Enterprise Event & Notification Platform (Schedules Module)
-- **9 Event Types** — Session, Meeting, Deadline, Webinar, Workshop, Office Hour, Reminder, Task, Break
+- **9 Event Types** — Training Session, Internal Meeting, Client Meeting, Interview, Workshop, Webinar, Team Sync, Demo Session, Custom Event
 - **4 View Modes** — Table (sortable/searchable), Timeline (visual flow), Calendar (FullCalendar), Activity (event log)
 - **FullCalendar Integration** — Day, Week, Month, Agenda views with color-coded events per type
 - **Rich Event Form** — Dynamic fields per event type, organizer, meeting links, participants, location, agenda
@@ -120,7 +123,10 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 tracking-app/
 ├── apps-script/              # Google Apps Script backend
 │   ├── Code.gs               # API handlers (CRUD, notifications, session tracking, events)
-│   └── Setup.gs              # Sheet creation & role seeding
+│   ├── Setup.gs              # Sheet creation & role seeding
+│   ├── appsscript.json       # Deployment config (access, OAuth scopes)
+│   └── .claspignore          # clasp push ignore rules
+├── .clasp.json               # clasp project config
 ├── public/                   # Static assets
 ├── src/
 │   ├── app/                  # Next.js App Router pages
@@ -139,22 +145,23 @@ tracking-app/
 │   │   ├── sign-in/          # Clerk sign-in page
 │   │   └── sign-up/          # Clerk sign-up page
 │   ├── components/
-│   │   ├── charts/           # Recharts components
-│   │   ├── common/           # ThemeProvider, UserSync, loading skeletons
-│   │   ├── dashboard/        # Online users widget, activity feed
+│   │   ├── charts/           # Recharts (4 chart components)
+│   │   ├── common/           # AccentThemeContext, ConfirmDialog, EmptyState, ErrorState,
+│   │   │                     # LoadingSkeleton, PageHeader, ProgressBar, ThemeProvider, UserSync
+│   │   ├── dashboard/        # OnlineUsersWidget, StatCard, StatsGrid
 │   │   ├── events/           # NotificationCenter, ActivityTimeline
 │   │   ├── forms/            # EventForm, ScheduleForm, StudentForm, etc.
 │   │   ├── layout/           # Sidebar, Navbar (with notification bell)
 │   │   ├── tables/           # Reusable DataTable component
-│   │   └── ui/               # shadcn/ui primitives
+│   │   └── ui/               # shadcn/ui primitives (40+ components)
 │   ├── stores/               # Zustand stores (notificationStore)
-│   ├── hooks/                # useSheetsData, useActivityTracking, useNotifications
-│   ├── services/             # API layer (safeFetch, cache, deduplication)
-│   ├── constants/            # Sheet names, time intervals, roles
+│   ├── hooks/                # useSheetsData, useActivityTracking, useNotifications,
+│   │                         # useDebounce, useMobile
+│   ├── services/             # API layer (safeFetch, cache, dedup), auth, roles, metrics
+│   ├── constants/            # Sheet names, event types, time intervals, styles
 │   ├── types/                # TypeScript interfaces (AppEvent, ActivityLogEntry, etc.)
-│   ├── lib/                  # Animation variants, utilities, CSV export
-│   │   └── export.ts          # CSV export utility
-│   ├── utils/                # Utility functions
+│   ├── lib/                  # Animations, utils (cn, formatDate, etc.), CSV export
+│   ├── utils/                # dateUtils (IST formatting, duration calc, auto-status)
 │   └── proxy.ts              # Clerk route protection middleware
 └── .env.local                # Environment variables
 ```
@@ -207,6 +214,12 @@ API_SECRET=
 
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxx
 CLERK_SECRET_KEY=sk_test_xxxxxxxxxx
+
+# Optional — the defaults below work for most Clerk setups:
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 ```
 
 ### 5. Set Up API Secret
@@ -243,16 +256,16 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Sheet | Key Columns |
 |-------|-------------|
-| **Students** | Student ID, Full Name, Email, Course, Batch, Status, Progress |
-| **Courses** | Course ID, Name, Modules, Duration, Status |
-| **DailySchedules** | Task ID, Batch Name, Schedule Date, Start Time, End Time, Status, Duration, Last Updated Timestamp (IST), Notes, Created/Modified/Last Status Change Time (IST), Event Type, Title, Organizer, Meeting Link, Participants, Location, Agenda, Reminders, Recurrence |
-| **Leads** | Lead ID, Name, Contact, Source, Course, Status, Follow-up |
-| **Trainers** | Trainer ID, Name, Email, Phone, Specialization, Status |
-| **Batches** | Batch ID, Name, Course, Trainer, Start Date, Status |
+| **Students** | Student ID, Full Name, Email, Phone Number, Course, Batch, Start Date, End Date, Status, Progress Percentage, Created At |
+| **Courses** | Course ID, Course Name, Modules, Duration, Status, Created At |
+| **DailySchedules** | Task ID, Batch Name, Schedule Date, Start Time, End Time, Status, Duration, Last Updated Timestamp (IST), Notes, Created Time (IST), Modified Time (IST), Last Status Change Time (IST), Event Type, Title, Organizer, Meeting Link, Participants, Location, Agenda, Reminders, Recurrence |
+| **Leads** | Lead ID, Lead Name, Contact, Source, Interested Course, Status, Follow-up Date, Created At |
+| **Trainers** | Trainer ID, Name, Email, Phone, Specialization, Status, Created At |
+| **Batches** | Batch ID, Batch Name, Course, Trainer, Start Date, Status, Created At |
 | **Users** | User ID, Full Name, Email, Role, Login Time, Logout Time, Last Active, Status, Created At |
-| **SessionLogs** | Log ID, User ID, Login/Logout, Duration, Device, Browser, IP |
-| **LoginLogs** | Log ID, User ID, Action, Timestamp |
-| **Notifications** | notificationId, userId, actorId, sourceModule, category, priority, title, message, actionUrl, actionType, metadata, status, isDeleted, createdAt, expiresAt, deviceInfo, sessionId |
+| **SessionLogs** | Log ID, User ID, Email, Login Time, Logout Time, Duration, Device, Browser, IP |
+| **LoginLogs** | Log ID, User ID, Email, Name, Action, Timestamp (IST) |
+| **Notifications** | notificationId, organizationId, branchId, userId, actorId, sourceModule, category, priority, title, message, actionUrl, actionType, metadata, status, isDeleted, createdAt, expiresAt, deviceInfo, sessionId |
 | **Roles** | Role Name, Permissions |
 | **Analytics** | Metric Name, Value, Last Updated |
 | **ActivityLogs** | Log ID, Event ID, Action, Details, Timestamp (IST), Event Title, Event Type |
@@ -265,7 +278,6 @@ Open [http://localhost:3000](http://localhost:3000).
 graph TB
     subgraph Browser["Browser"]
         UI["Next.js App (App Router)"]
-        SW["Service Worker<br/>(Browser Notification API)"]
     end
 
     subgraph Auth["Authentication"]
@@ -380,7 +392,7 @@ graph TB
 | **Next.js (App Router)** | Frontend rendering, API routing via `proxy.ts` middleware, client-side role checks |
 | **Zustand** | Client-side notification state, reminder cycle, triple-delivery (in-app + toast + browser) |
 | **Google Apps Script** | REST API — CRUD operations, session tracking, notification CRUD, heartbeat updates, activity logging |
-| **Google Sheets** | Operational data store — 12 sheets (13 including ActivityLogs) |
+| **Google Sheets** | Operational data store — 13 sheets |
 
 ### Key Design Decisions
 
@@ -447,7 +459,7 @@ Deployed on **Vercel**. To deploy your own:
 
 ### v3.0 — Enterprise Event & Notification Platform
 - **Schedules Module** — Complete rewrite into 4-view enterprise platform:
-  - **9 Event Types**: Session, Meeting, Deadline, Webinar, Workshop, Office Hour, Reminder, Task, Break
+  - **9 Event Types**: Training Session, Internal Meeting, Client Meeting, Interview, Workshop, Webinar, Team Sync, Demo Session, Custom Event
   - **4 View Modes**: Table (sortable/searchable), Timeline (visual event flow), Calendar (FullCalendar), Activity (event audit log)
   - **FullCalendar** — Day, Week, Month, Agenda views with per-type color coding
   - **Rich Event Form** — Dynamic fields per event type, organizer, meeting links, participants, location, agenda
@@ -460,7 +472,7 @@ Deployed on **Vercel**. To deploy your own:
 - **Notification Center** — `NotificationCenter` component (bell icon + dropdown) with animated unread badge, type-colored notifications, mark-read/mark-all-read/clear/dismiss
 - **Activity Timeline** — `ActivityTimeline` component with action-specific icons/colors, sorted newest-first, loading skeleton, empty state
 - **Zustand Store** — `notificationStore` with `sendNotificationTriple()`, `runReminderCycle()`, `checkAndUpdateAutoStatus()`, `startPolling()` with 30s/60s intervals
-- **Backend Update** — `DailySchedules` now 22 columns (added `Reminders`, `Recurrence`), new `ActivityLogs` sheet, new deployment @14/15/16
+- **Backend Update** — `DailySchedules` now 21 columns (added `Reminders`, `Recurrence`), new `ActivityLogs` sheet, new deployment @14/15/16
 - **Google Sheets Schema** — `Reminders` stored as comma-separated string (e.g. `"5,15,30"`), `Recurrence` as JSON string
 
 ### v2.0 — Theme System Refactor & Apps Script Overhaul
