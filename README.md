@@ -3,13 +3,12 @@
   <p><em>Enterprise Training & Student Management Platform</em></p>
 
   <p>
-    <a href="https://ssp-global-sti-ts.vercel.app">
-      <img src="https://img.shields.io/badge/Live_Demo-4285F4?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo">
+    <a href="https://github.com/persevcareers/sspglobalsti">
+      <img src="https://img.shields.io/badge/Repository-4285F4?style=for-the-badge&logo=github&logoColor=white" alt="Repository">
+    <a href="https://github.com/persevcareers/sspglobalsti">
+      <img src="https://img.shields.io/github/stars/persevcareers/sspglobalsti?style=for-the-badge&logo=github&color=gold" alt="GitHub Stars">
     </a>
-    <a href="https://github.com/Jayakrishnasai/SSPGlobal_STI_TS">
-      <img src="https://img.shields.io/github/stars/Jayakrishnasai/SSPGlobal_STI_TS?style=for-the-badge&logo=github&color=gold" alt="GitHub Stars">
-    </a>
-    <a href="https://github.com/Jayakrishnasai/SSPGlobal_STI_TS/blob/main/LICENSE">
+    <a href="https://github.com/persevcareers/sspglobalsti/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge" alt="License">
     </a>
   </p>
@@ -64,6 +63,7 @@ An **internal training institute management platform** for SSP Global. TrackSuit
 - **Batches** — Batch management linked to courses and trainers with status badges, progress bars, filter bar, and CSV export
 - **Trainers** — Trainer profiles with specialization and CSV export
 - **Schedules** — Enterprise Event & Notification Platform
+- **Calendar** — FullCalendar integration with day/week/month/agenda views, color-coded events
 - **Leads** — Lead management with source tracking, follow-up dates, and CSV export
 - **Analytics** — Charts for lead sources, student status distribution, enrollment trends, batch progress
 
@@ -171,7 +171,7 @@ tracking-app/
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/Jayakrishnasai/SSPGlobal_STI_TS.git
+git clone https://github.com/persevcareers/sspglobalsti.git
 cd tracking-app
 npm install
 ```
@@ -245,14 +245,14 @@ Open [http://localhost:3000](http://localhost:3000).
 |-------|-------------|
 | **Students** | Student ID, Full Name, Email, Course, Batch, Status, Progress |
 | **Courses** | Course ID, Name, Modules, Duration, Status |
-| **DailySchedules** | Task ID, Batch, Date, Start/End Time, Status, Event Type, Title, Organizer, Meeting Link, Participants, Location, Agenda, Reminders, Recurrence |
+| **DailySchedules** | Task ID, Batch Name, Schedule Date, Start Time, End Time, Status, Duration, Last Updated Timestamp (IST), Notes, Created/Modified/Last Status Change Time (IST), Event Type, Title, Organizer, Meeting Link, Participants, Location, Agenda, Reminders, Recurrence |
 | **Leads** | Lead ID, Name, Contact, Source, Course, Status, Follow-up |
 | **Trainers** | Trainer ID, Name, Email, Phone, Specialization, Status |
 | **Batches** | Batch ID, Name, Course, Trainer, Start Date, Status |
-| **Users** | User ID, Name, Email, Role, Login/Logout, Last Active, Status |
+| **Users** | User ID, Full Name, Email, Role, Login Time, Logout Time, Last Active, Status, Created At |
 | **SessionLogs** | Log ID, User ID, Login/Logout, Duration, Device, Browser, IP |
 | **LoginLogs** | Log ID, User ID, Action, Timestamp |
-| **Notifications** | Notification ID, User ID, Title, Message, Type, Link, Is Read, Created At |
+| **Notifications** | notificationId, userId, actorId, sourceModule, category, priority, title, message, actionUrl, actionType, metadata, status, isDeleted, createdAt, expiresAt, deviceInfo, sessionId |
 | **Roles** | Role Name, Permissions |
 | **Analytics** | Metric Name, Value, Last Updated |
 | **ActivityLogs** | Log ID, Event ID, Action, Details, Timestamp (IST), Event Title, Event Type |
